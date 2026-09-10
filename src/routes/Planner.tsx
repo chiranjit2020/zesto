@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RECIPES } from '../data/catalog';
 import { generateWeekPlan, type PlanInput } from '../domain/plan';
@@ -15,13 +15,7 @@ export function Planner() {
   const [budget, setBudget] = useState(1000);
   const [people, setPeople] = useState(prefs.servings);
   const [effort, setEffort] = useState<PlanInput['maxEffort']>('low');
-  const [includeSnack, setIncludeSnack] = useState(false);
   const [plan, setPlan] = useState<ReturnType<typeof generateWeekPlan> | null>(null);
-
-  const slots = useMemo<PlanInput['slots']>(
-    () => (includeSnack ? ['breakfast', 'lunch', 'dinner'] : ['breakfast', 'lunch', 'dinner']),
-    [includeSnack],
-  );
 
   const build = () => {
     setPlan(
@@ -30,7 +24,7 @@ export function Planner() {
         people,
         diet: prefs.diet,
         maxEffort: effort,
-        slots,
+        slots: ['breakfast', 'lunch', 'dinner'],
         pantry,
       }),
     );
@@ -59,10 +53,10 @@ export function Planner() {
             ]}
           />
         </div>
-        <label className="flex items-center gap-3 text-sm">
-          <input type="checkbox" checked={includeSnack} onChange={(e) => setIncludeSnack(e.target.checked)} className="accent-[rgb(var(--z-brand))] w-4 h-4" />
-          Diet: <b>{prefs.diet === 'any' ? 'no preference' : prefs.diet}</b> (change in Profile)
-        </label>
+        <p className="text-sm text-content-muted">
+          Diet: <b className="text-content">{prefs.diet === 'any' ? 'no preference' : prefs.diet}</b>{' '}
+          <Link to="/profile" className="text-brand font-semibold">change</Link>
+        </p>
         <Button block size="lg" onClick={build}>Generate my week</Button>
       </section>
 
