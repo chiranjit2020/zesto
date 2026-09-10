@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
 import { ButtonLink } from '../components/ui/Button';
+import { Icon } from '../components/ui/Icon';
 import { CATALOG_META } from '../data/catalog';
 
 export function NotFound() {
   return (
     <div className="text-center py-20">
-      <div className="text-5xl mb-4">🍳</div>
+      <Icon name="cook" size={48} strokeWidth={1.5} className="mx-auto mb-4 text-content-faint" />
       <h1 className="text-2xl font-bold">Nothing cooking here</h1>
       <p className="text-sm text-content-muted mt-1 mb-6">That page doesn't exist.</p>
       <ButtonLink to="/">Back to Zesto</ButtonLink>

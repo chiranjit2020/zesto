@@ -40,7 +40,7 @@ export function Midnight() {
 
   return (
     <div className="space-y-6">
-      <PageHeader emoji="🌙" title="Midnight hunger" sub="Quiet kitchen. Minimal cleanup. In and out." />
+      <PageHeader icon="mode-midnight" iconMotion="breathe" title="Midnight hunger" sub="Quiet kitchen. Minimal cleanup. In and out." />
 
       <div className="z-card p-6 grad-night text-white text-center">
         <div className="z-stat-num text-3xl">

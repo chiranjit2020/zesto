@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { EffortLevel, EquipmentId } from '../domain/types';
 import { Segmented, RangeControl } from './ui/Segmented';
 import { Chip } from './ui/primitives';
+import { Icon } from './ui/Icon';
 import { EQUIPMENT_OPTIONS } from '../state/prefs';
 
 export interface Constraints {
@@ -121,7 +122,7 @@ export function ConstraintForm({
                       })
                     }
                   >
-                    {e.emoji} {e.label}
+                    <Icon name={e.icon} size={15} className="-ml-0.5" /> {e.label}
                   </Chip>
                 );
               })}

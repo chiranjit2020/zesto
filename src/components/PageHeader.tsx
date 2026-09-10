@@ -1,12 +1,15 @@
 import { useNavigate } from 'react-router-dom';
+import { Icon, type IconName } from './ui/Icon';
 
 export function PageHeader({
-  emoji,
+  icon,
+  iconMotion,
   title,
   sub,
   onBack,
 }: {
-  emoji?: string;
+  icon?: IconName;
+  iconMotion?: 'pop' | 'spin' | 'swing' | 'pulse' | 'breathe' | 'tumble';
   title: string;
   sub?: string;
   onBack?: () => void;
@@ -20,8 +23,8 @@ export function PageHeader({
       >
         ← Back
       </button>
-      <h1 className="text-2xl font-bold flex items-center gap-2 text-balance">
-        {emoji && <span aria-hidden>{emoji}</span>}
+      <h1 className="group text-2xl font-bold flex items-center gap-2 text-balance">
+        {icon && <Icon name={icon} size={24} strokeWidth={2.2} motion={iconMotion} className="text-brand shrink-0" />}
         {title}
       </h1>
       {sub && <p className="text-sm text-content-muted mt-1">{sub}</p>}

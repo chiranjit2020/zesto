@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import type { Recipe, ScoredRecipe } from '../domain/types';
 import { RecipeMeta, recipeArt } from './RecipeMeta';
 import { Badge } from './ui/primitives';
+import { Icon } from './ui/Icon';
 import { INGREDIENT_BY_ID } from '../data/catalog';
 import { ZMark } from './ui/ZMark';
 
@@ -17,7 +18,7 @@ export function RecipeCard({ recipe, footnote }: { recipe: Recipe; footnote?: st
         </div>
         {recipe.tags.includes('uses-leftovers') && (
           <span className="absolute top-2 left-2">
-            <Badge tone="positive">♻︎ leftovers</Badge>
+            <Badge tone="positive"><Icon name="reuse" size={11} /> leftovers</Badge>
           </span>
         )}
       </div>
@@ -88,7 +89,7 @@ export function MatchCard({ scored, rank }: { scored: ScoredRecipe; rank?: numbe
                   ○ {INGREDIENT_BY_ID.get(id)?.name ?? id}
                 </span>
               ))}
-              {missingIngredients.length === 0 && <span className="text-positive">nothing 🎉</span>}
+              {missingIngredients.length === 0 && <span className="text-positive font-semibold">nothing — you're set</span>}
             </div>
           </div>
         </div>

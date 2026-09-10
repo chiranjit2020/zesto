@@ -9,18 +9,30 @@ import { useClock, isLateNight } from '../lib/hooks';
 import { RecipeCard } from '../components/RecipeCard';
 import { SectionHeader } from '../components/ui/primitives';
 import { Button, ButtonLink } from '../components/ui/Button';
+import { Icon, MODE_MOTION, type IconName } from '../components/ui/Icon';
 import { useMemo } from 'react';
 
-const MODES = [
-  { to: '/make', emoji: '🍳', title: 'What can I make?', sub: 'From what you have' },
-  { to: '/broke', emoji: '🪙', title: "I'm broke", sub: 'Tiny budget' },
-  { to: '/tired', emoji: '😵', title: "I'm too tired", sub: 'Low effort, low cleanup' },
-  { to: '/midnight', emoji: '🌙', title: 'Midnight hunger', sub: 'Quiet & quick' },
-  { to: '/leftovers', emoji: '♻️', title: 'Use my leftovers', sub: 'Rescue what you have' },
-  { to: '/improvise', emoji: '🧪', title: 'Make a ₹99 meal', sub: 'Base + protein + veg + flavour' },
-  { to: '/planner', emoji: '📅', title: 'Plan my week', sub: 'Plan + shopping list' },
-  { to: '/surprise', emoji: '🎲', title: 'Surprise me', sub: 'Let Zesto decide' },
+const MODES: { to: string; icon: IconName; title: string; sub: string }[] = [
+  { to: '/make', icon: 'mode-make', title: 'What can I make?', sub: 'From what you have' },
+  { to: '/broke', icon: 'mode-broke', title: "I'm broke", sub: 'Tiny budget' },
+  { to: '/tired', icon: 'mode-tired', title: "I'm too tired", sub: 'Low effort, low cleanup' },
+  { to: '/midnight', icon: 'mode-midnight', title: 'Midnight hunger', sub: 'Quiet & quick' },
+  { to: '/leftovers', icon: 'mode-leftovers', title: 'Use my leftovers', sub: 'Rescue what you have' },
+  { to: '/improvise', icon: 'mode-improvise', title: 'Make a ₹99 meal', sub: 'Base + protein + veg + flavour' },
+  { to: '/planner', icon: 'mode-plan', title: 'Plan my week', sub: 'Plan + shopping list' },
+  { to: '/surprise', icon: 'mode-surprise', title: 'Surprise me', sub: 'Let Zesto decide' },
 ];
+
+const MODE_ACCENT: Record<string, string> = {
+  '/make': 'text-brand',
+  '/broke': 'text-caution',
+  '/tired': 'text-critical',
+  '/midnight': 'text-brand',
+  '/leftovers': 'text-positive',
+  '/improvise': 'text-brand',
+  '/planner': 'text-brand',
+  '/surprise': 'text-caution',
+};
 
 const QUICK = [
   { label: 'Under ₹30', to: '/discover?maxCost=30' },
@@ -71,13 +83,18 @@ export function Home() {
         <h1 className="text-display font-bold mt-1 text-balance">What can you make right now?</h1>
 
         <div className="mt-5 grid grid-cols-2 gap-2.5">
-          {MODES.map((m) => (
+          {MODES.map((m, i) => (
             <Link
               key={m.to}
               to={m.to}
-              className="z-card p-3.5 hover:border-brand/40 transition-colors flex flex-col gap-1 min-h-[92px]"
+              className="group z-card p-3.5 hover:border-brand/40 transition-colors flex flex-col gap-1 min-h-[96px]"
             >
-              <span className="text-2xl" aria-hidden>{m.emoji}</span>
+              <span
+                className={`zi-enter mb-0.5 ${MODE_ACCENT[m.to] ?? 'text-brand'}`}
+                style={{ animationDelay: `${i * 55}ms` }}
+              >
+                <Icon name={m.icon} size={26} strokeWidth={2.2} motion={MODE_MOTION[m.icon]} />
+              </span>
               <span className="font-bold leading-tight text-sm">{m.title}</span>
               <span className="text-2xs text-content-faint">{m.sub}</span>
             </Link>
@@ -86,8 +103,8 @@ export function Home() {
       </section>
 
       {isLateNight(now) && (
-        <Link to="/midnight" className="z-card p-4 grad-night text-white flex items-center gap-3">
-          <span className="text-2xl">🌙</span>
+        <Link to="/midnight" className="group z-card p-4 grad-night text-white flex items-center gap-3">
+          <Icon name="mode-midnight" size={26} motion="breathe" className="shrink-0" />
           <div className="flex-1">
             <div className="font-bold">
               {now.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })} — hungry?
@@ -128,7 +145,7 @@ export function Home() {
         </section>
       ) : (
         <section className="z-card p-5 text-center">
-          <div className="text-3xl mb-2">🧺</div>
+          <Icon name="nav-pantry" size={30} className="mx-auto mb-2 text-brand" />
           <h2 className="font-bold">Tell Zesto what's in your kitchen</h2>
           <p className="text-sm text-content-muted mt-1 mb-4">
             Add a few ingredients and every recommendation gets sharper.
@@ -145,8 +162,9 @@ export function Home() {
           ))}
         </div>
         <div className="mt-4">
-          <Button variant="secondary" block onClick={() => navigate('/surprise')}>
-            🎲 I really don't want to think — surprise me
+          <Button variant="secondary" block onClick={() => navigate('/surprise')} className="group">
+            <Icon name="mode-surprise" size={18} motion="tumble" />
+            I really don't want to think — surprise me
           </Button>
         </div>
       </section>

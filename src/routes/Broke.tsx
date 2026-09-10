@@ -20,7 +20,7 @@ export function Broke() {
 
   return (
     <div className="space-y-6">
-      <PageHeader emoji="🪙" title="Only got a little?" sub="No judgement. Zesto finds what you can make." />
+      <PageHeader icon="mode-broke" iconMotion="swing" title="Only got a little?" sub="No judgement. Zesto finds what you can make." />
 
       <div className="z-card p-5 text-center grad-warm text-ink">
         <div className="text-sm font-bold">I've got about</div>
@@ -44,7 +44,7 @@ export function Broke() {
         Costs are estimated from the portion used — real prices move with your shop and city.
       </p>
 
-      <ResultsView ctx={relaxed ?? ctx} onRelax={setRelaxed} emptyIcon="🪙" />
+      <ResultsView ctx={relaxed ?? ctx} onRelax={setRelaxed} emptyIcon="mode-broke" />
     </div>
   );
 }

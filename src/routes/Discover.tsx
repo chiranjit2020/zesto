@@ -7,6 +7,7 @@ import { Chip, EmptyState } from '../components/ui/primitives';
 import { Sheet } from '../components/ui/Sheet';
 import { Segmented, RangeControl } from '../components/ui/Segmented';
 import { Button } from '../components/ui/Button';
+import { Icon } from '../components/ui/Icon';
 import { EQUIPMENT_OPTIONS } from '../state/prefs';
 import type { EquipmentId } from '../domain/types';
 
@@ -71,7 +72,7 @@ export function Discover() {
 
       {results.length === 0 ? (
         <EmptyState
-          icon="🔍"
+          icon="search"
           title="No recipes match"
           body="Loosen a filter or clear the search."
           action={<Button variant="secondary" size="sm" onClick={() => setFilters(EMPTY_FILTERS)}>Clear all</Button>}
@@ -147,7 +148,7 @@ export function Discover() {
                       })
                     }
                   >
-                    {e.emoji} {e.label}
+                    <Icon name={e.icon} size={15} className="-ml-0.5" /> {e.label}
                   </Chip>
                 );
               })}

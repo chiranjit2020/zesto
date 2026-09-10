@@ -27,7 +27,7 @@ export function Leftovers() {
 
   return (
     <div className="space-y-6">
-      <PageHeader emoji="♻️" title="Use my leftovers" sub="Turn what's already cooked into another meal." />
+      <PageHeader icon="mode-leftovers" iconMotion="spin" title="Use my leftovers" sub="Turn what's already cooked into another meal." />
 
       <div className="z-card p-4">
         <h2 className="text-sm font-bold mb-2">What's sitting in the fridge?</h2>
@@ -50,10 +50,10 @@ export function Leftovers() {
       </div>
 
       {picked.size > 0 && (
-        <p className="text-center font-bold text-positive">You can rescue this. 👇</p>
+        <p className="text-center font-bold text-positive">You can rescue this.</p>
       )}
 
-      <ResultsView ctx={finalCtx} onRelax={setRelaxed} emptyIcon="♻️" />
+      <ResultsView ctx={finalCtx} onRelax={setRelaxed} emptyIcon="mode-leftovers" />
     </div>
   );
 }

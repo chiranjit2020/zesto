@@ -63,6 +63,46 @@
   .grad-brand { background-image: var(--z-grad-brand); }
   .grad-warm { background-image: var(--z-grad-warm); }
   .grad-night { background-image: var(--z-grad-night); }
+
+  /* animated icons (replacing the static emoji). Motion communicates the control's
+     character; kept low-amplitude and, for the two ambient ones, slow. */
+  .zi-icon { transform-origin: center; will-change: transform; }
+  .zi-enter { animation: zi-pop 0.5s var(--z-ease) both; }
+  .group:hover .zi-pop, .group:active .zi-pop, .zi-pop:hover { animation: zi-pop 0.45s var(--z-ease); }
+  .group:hover .zi-spin, .zi-spin.is-rolling { animation: zi-spin 0.6s var(--z-ease); }
+  .group:hover .zi-swing, .group:active .zi-swing { animation: zi-swing 0.6s ease-in-out; }
+  .group:hover .zi-tumble, .group:active .zi-tumble, .zi-tumble.is-rolling {
+    animation: zi-tumble 0.55s var(--z-ease);
+  }
+  .zi-breathe { animation: zi-breathe 4.5s ease-in-out infinite; }
+  .zi-pulse { animation: zi-pulse 2.6s ease-in-out infinite; }
+}
+
+@keyframes zi-pop {
+  0% { transform: scale(1) rotate(0); }
+  40% { transform: scale(1.18) rotate(-7deg); }
+  70% { transform: scale(0.95) rotate(2deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes zi-spin { to { transform: rotate(360deg); } }
+@keyframes zi-swing {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(15deg); }
+  45% { transform: rotate(-11deg); }
+  70% { transform: rotate(6deg); }
+}
+@keyframes zi-tumble {
+  0% { transform: rotate(0) translateY(0); }
+  35% { transform: rotate(170deg) translateY(-5px); }
+  100% { transform: rotate(360deg) translateY(0); }
+}
+@keyframes zi-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.88; }
+  50% { transform: scale(1.09); opacity: 1; }
+}
+@keyframes zi-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 
 @media (prefers-reduced-motion: reduce) {

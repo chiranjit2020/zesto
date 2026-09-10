@@ -8,6 +8,7 @@ import { useWakeLock, useCountdown } from '../lib/hooks';
 import { timerSecondsFromStep } from '../lib/format';
 import { ZMark } from '../components/ui/ZMark';
 import { Button } from '../components/ui/Button';
+import { Icon } from '../components/ui/Icon';
 import { RecipeMeta } from '../components/RecipeMeta';
 import { costView } from '../domain/cost';
 
@@ -48,10 +49,10 @@ export function CookMode() {
       <header className="px-4 pt-3 pb-2 flex items-center gap-3 border-b border-line">
         <button
           onClick={() => setConfirmExit(true)}
-          className="z-tap text-content-muted text-sm font-semibold"
+          className="z-tap grid place-items-center text-content-muted"
           aria-label="Exit cooking mode"
         >
-          ✕
+          <Icon name="close" size={22} />
         </button>
         <div className="flex-1">
           <div className="text-xs font-bold truncate">{recipe.title}</div>
@@ -84,10 +85,13 @@ export function CookMode() {
               </div>
             ) : timer.remaining === 0 && !timer.running ? (
               <Button variant="warm" onClick={() => timer.start(stepSeconds)}>
-                ⏱ Start {Math.round(stepSeconds / 60) || 1}-min timer
+                <Icon name="timer" size={17} />
+                Start {Math.round(stepSeconds / 60) || 1}-min timer
               </Button>
             ) : (
-              <div className="text-positive font-bold text-center">⏱ Timer done — carry on</div>
+              <div className="text-positive font-bold text-center flex items-center justify-center gap-1.5">
+                <Icon name="check" size={16} /> Timer done — carry on
+              </div>
             )}
           </div>
         )}
@@ -100,15 +104,15 @@ export function CookMode() {
           onClick={() => { timer.stop(); cook.prev(); }}
           disabled={cook.step === 0}
         >
-          ← Back
+          <Icon name="back" size={18} /> Back
         </Button>
         {isLast ? (
           <Button variant="warm" size="lg" block onClick={() => { timer.stop(); setFinished(true); }}>
-            I'm done cooking 🎉
+            <Icon name="celebrate" size={18} /> I'm done cooking
           </Button>
         ) : (
           <Button size="lg" block onClick={() => { timer.stop(); cook.next(total); }}>
-            Done — next →
+            Done — next <Icon name="next" size={18} />
           </Button>
         )}
       </footer>

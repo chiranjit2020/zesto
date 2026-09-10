@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Diet, EffortLevel, EquipmentId, Preferences } from '../domain/types';
+import type { IconName } from '../components/ui/Icon';
 
 interface PrefsStore extends Preferences {
   hasOnboarded: boolean;
@@ -51,14 +52,14 @@ export const DIETS: { id: Diet; label: string }[] = [
   { id: 'egg', label: 'Egg is fine' },
 ];
 
-export const EQUIPMENT_OPTIONS: { id: EquipmentId; label: string; emoji: string }[] = [
-  { id: 'no-cook', label: 'No cooking', emoji: '🥣' },
-  { id: 'kettle', label: 'Kettle', emoji: '🫖' },
-  { id: 'microwave', label: 'Microwave', emoji: '📻' },
-  { id: 'one-pan', label: 'One pan', emoji: '🍳' },
-  { id: 'one-pot', label: 'One pot', emoji: '🍲' },
-  { id: 'tawa', label: 'Tawa', emoji: '🫓' },
-  { id: 'rice-cooker', label: 'Rice cooker', emoji: '🍚' },
+export const EQUIPMENT_OPTIONS: { id: EquipmentId; label: string; icon: IconName }[] = [
+  { id: 'no-cook', label: 'No cooking', icon: 'eq-no-cook' },
+  { id: 'kettle', label: 'Kettle', icon: 'eq-kettle' },
+  { id: 'microwave', label: 'Microwave', icon: 'eq-microwave' },
+  { id: 'one-pan', label: 'One pan', icon: 'eq-one-pan' },
+  { id: 'one-pot', label: 'One pot', icon: 'eq-one-pot' },
+  { id: 'tawa', label: 'Tawa', icon: 'eq-tawa' },
+  { id: 'rice-cooker', label: 'Rice cooker', icon: 'eq-rice-cooker' },
 ];
 
 export const EFFORT_OPTIONS: { id: EffortLevel; label: string }[] = [

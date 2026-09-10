@@ -42,7 +42,7 @@ export function Improviser() {
   return (
     <div className="space-y-6">
       <PageHeader
-        emoji="🧪"
+        icon="mode-improvise"
         title="Make your own ₹99 meal"
         sub="Pick one from each column. Almost always lands on something edible, filling and cheap."
       />
@@ -80,7 +80,7 @@ export function Improviser() {
         <h2 className="text-lg font-bold mb-3">Recipes that match your combo</h2>
         {matches.length === 0 ? (
           <EmptyState
-            icon="🧪"
+            icon="mode-improvise"
             title={chosen.length === 0 ? 'Build a combo above' : 'No exact match in the book'}
             body={
               chosen.length === 0

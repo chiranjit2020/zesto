@@ -31,7 +31,7 @@ export function Tired() {
 
   return (
     <div className="space-y-6">
-      <PageHeader emoji="😵" title="Too tired to cook" sub="Effort first, not just time. Fewer dishes is the point." />
+      <PageHeader icon="mode-tired" iconMotion="pulse" title="Too tired to cook" sub="Effort first, not just time. Fewer dishes is the point." />
 
       <div className="z-card p-4">
         <label className="text-sm font-bold block mb-2">How much effort are you willing to make?</label>
@@ -44,7 +44,7 @@ export function Tired() {
       </div>
 
       {results.length === 0 ? (
-        <EmptyState icon="😴" title="Even that's too much right now?" body="Try 'One bowl' — those need almost nothing." />
+        <EmptyState icon="mode-tired" title="Even that's too much right now?" body="Try 'One bowl' — those need almost nothing." />
       ) : (
         <div className="space-y-3">
           {results.map((s, i) => (

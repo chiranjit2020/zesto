@@ -9,6 +9,7 @@ import { PageHeader } from '../components/PageHeader';
 import { Badge, EstimateTag } from '../components/ui/primitives';
 import { ButtonLink, Button } from '../components/ui/Button';
 import { ZMark } from '../components/ui/ZMark';
+import { Icon } from '../components/ui/Icon';
 
 export function RecipeDetail() {
   const { slug } = useParams();
@@ -58,9 +59,14 @@ export function RecipeDetail() {
           <button
             onClick={() => toggleFavorite(recipe.number)}
             aria-label={fav ? 'Remove from favorites' : 'Save to favorites'}
-            className="z-tap text-xl shrink-0"
+            aria-pressed={fav}
+            className="z-tap shrink-0 grid place-items-center"
           >
-            {fav ? '★' : '☆'}
+            <Icon
+              name="star"
+              size={22}
+              className={fav ? 'text-caution fill-caution' : 'text-content-faint'}
+            />
           </button>
         </div>
         <p className="text-sm text-content-muted mt-1">{recipe.tagline}</p>
@@ -70,7 +76,9 @@ export function RecipeDetail() {
         <div className="mt-2 flex flex-wrap gap-1.5">
           <Badge tone="neutral">{recipe.level}</Badge>
           <Badge tone="neutral">{recipe.chapter.replace(/ *[—–].*/, '').slice(0, 26)}</Badge>
-          {recipe.tags.includes('uses-leftovers') && <Badge tone="positive">♻︎ uses leftovers</Badge>}
+          {recipe.tags.includes('uses-leftovers') && (
+            <Badge tone="positive"><Icon name="reuse" size={12} /> uses leftovers</Badge>
+          )}
           {recipe.serves > 1 && <Badge tone="neutral">serves {recipe.serves}</Badge>}
         </div>
       </header>
@@ -102,7 +110,7 @@ export function RecipeDetail() {
                 </button>
               </li>
             ))}
-            {split.need.length === 0 && <li className="text-positive">nothing — you're set 🎉</li>}
+            {split.need.length === 0 && <li className="text-positive font-semibold">nothing — you're set</li>}
           </ul>
         </div>
       </section>
@@ -131,11 +139,15 @@ export function RecipeDetail() {
       </section>
 
       <section className="z-card p-4">
-        <h2 className="font-bold mb-2">💰 Money hack</h2>
+        <h2 className="font-bold mb-2 flex items-center gap-1.5">
+          <Icon name="money" size={17} className="text-caution" /> Money hack
+        </h2>
         <p className="text-sm text-content-muted leading-relaxed">{recipe.moneyHack}</p>
         {recipe.swapIt && (
           <>
-            <h3 className="font-bold text-sm mt-3 mb-1">🔀 Swap it</h3>
+            <h3 className="font-bold text-sm mt-3 mb-1 flex items-center gap-1.5">
+              <Icon name="shuffle" size={15} className="text-brand" /> Swap it
+            </h3>
             <p className="text-sm text-content-muted leading-relaxed">{recipe.swapIt}</p>
           </>
         )}

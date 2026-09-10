@@ -1,10 +1,11 @@
 import type { MealHistoryEntry } from './types';
+import type { IconName } from '../components/ui/Icon';
 import { RECIPE_BY_NUMBER } from '../data/catalog';
 
 /** Subtle, useful gamification (§34) — not a children's game. */
 export interface Challenge {
   id: string;
-  emoji: string;
+  icon: IconName;
   title: string;
   description: string;
   target: number;
@@ -15,7 +16,7 @@ export interface Challenge {
 export const CHALLENGES: Challenge[] = [
   {
     id: 'thirty-dinner',
-    emoji: '🪙',
+    icon: 'mode-broke',
     title: '₹30 Dinner Challenge',
     description: 'Cook 3 meals for ₹30 or less',
     target: 3,
@@ -27,7 +28,7 @@ export const CHALLENGES: Challenge[] = [
   },
   {
     id: 'no-delivery',
-    emoji: '🚫',
+    icon: 'ban',
     title: '5-Day No-Delivery',
     description: 'Replace 5 delivery orders with home cooking',
     target: 5,
@@ -36,7 +37,7 @@ export const CHALLENGES: Challenge[] = [
   },
   {
     id: 'three-ingredient',
-    emoji: '3️⃣',
+    icon: 'hash',
     title: '3-Ingredient Challenge',
     description: 'Cook 2 recipes with 3 or fewer key ingredients',
     target: 2,
@@ -45,7 +46,7 @@ export const CHALLENGES: Challenge[] = [
   },
   {
     id: 'leftover-hero',
-    emoji: '♻️',
+    icon: 'mode-leftovers',
     title: 'Leftover Hero',
     description: 'Rescue 3 leftovers into new meals',
     target: 3,

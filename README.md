@@ -51,24 +51,25 @@ Ridiculously Easy Meals"**, parsed into structured data. Nothing is invented.
 ## Stack
 
 Vite · React 18 + TypeScript · React Router · Zustand (persisted, on-device) ·
-Tailwind (tokenised design system) · vite-plugin-pwa / Workbox · Vitest.
+Tailwind (tokenised design system) · lucide-react (icons) · vite-plugin-pwa / Workbox ·
+Vitest.
 
 **No backend, no database.** The 99 recipes are compiled into the app; everything
 personal (pantry, history, favorites, preferences, an in-progress cook) is stored in
-the browser per device. The whole stack is GitHub → Vercel (static). Cross-device sync
-and accounts are a deliberate later phase (§38).
+the browser per device. The whole stack is **GitHub → GitHub Pages** (static). Cross-
+device sync and accounts are a deliberate later phase (§38).
 
 ## Getting started
 
 ```bash
 npm install
-npm run dev            # http://localhost:5173
+npm run dev            # http://localhost:5173/zesto/
 npm test               # decision-engine + catalog + smoke tests
-npm run build && npm run preview
+npm run build && npm run preview   # http://localhost:4173/zesto/
 ```
 
-No environment variables are required — Zesto runs fully offline out of the box, with
-all personal data on the device.
+No environment variables. Zesto runs fully offline out of the box, all personal data
+on the device. The app is served under `/zesto/` (`base` in `vite.config.ts`).
 
 ## The content pipeline
 
@@ -93,17 +94,22 @@ the 16 iOS launch screens, favicons and the OG card from the official logo
 
 ## Deployment
 
-```
-GitHub → Vercel (static build, output: dist)
-```
+`GitHub → GitHub Pages`, via `.github/workflows/deploy.yml` on every push to `main`
+(build + typecheck + test, then publish `dist/`). `.github/workflows/ci.yml` runs the
+same checks on pull requests.
 
-Vercel: framework preset **Vite**, root directory `./`, build `npm run build`, output
-`dist`. **No environment variables.** `vercel.json` handles the SPA rewrite (so
-`/r/:slug` deep links don't 404) and cache headers.
+One-time setup:
 
-> If the deployment sits behind a login wall, turn off **Settings → Deployment
-> Protection → Vercel Authentication** for production — a protected URL breaks the
-> installable PWA and every shared recipe link.
+1. **Repo → Settings → Pages → Source: GitHub Actions.**
+2. The app is built with `base: '/zesto/'`, so it lives at
+   `https://<user>.github.io/zesto/`.
+3. For **`chiranjitkarmakar.com/zesto/`**: a custom apex domain configured on your
+   GitHub **user site** (`<user>.github.io`) automatically covers project pages —
+   `chiranjitkarmakar.com/zesto/` then resolves to this repo's Pages. Nothing to add
+   in this repo. (Without the user-site domain it stays at `<user>.github.io/zesto/`.)
+
+`vite.config.ts` writes a `404.html` copy of `index.html` so SPA deep links
+(`/zesto/r/:slug`) resolve on Pages, which has no rewrite config.
 
 ### If you later want cross-device sync
 

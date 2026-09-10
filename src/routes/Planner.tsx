@@ -8,6 +8,7 @@ import { PageHeader } from '../components/PageHeader';
 import { RangeControl, Segmented } from '../components/ui/Segmented';
 import { Button } from '../components/ui/Button';
 import { MetricTile } from '../components/ui/primitives';
+import { Icon } from '../components/ui/Icon';
 
 export function Planner() {
   const prefs = usePrefs();
@@ -32,7 +33,7 @@ export function Planner() {
 
   return (
     <div className="space-y-6">
-      <PageHeader emoji="📅" title="Plan my week" onBack={undefined} />
+      <PageHeader icon="mode-plan" title="Plan my week" onBack={undefined} />
 
       <section className="z-card p-4 space-y-5">
         <RangeControl label="Weekly budget" min={400} max={2500} step={50} prefix="₹" value={budget} onChange={setBudget} />
@@ -90,7 +91,9 @@ export function Planner() {
           </section>
 
           <section>
-            <h2 className="font-bold mb-2">🛒 Shopping list</h2>
+            <h2 className="font-bold mb-2 flex items-center gap-1.5">
+              <Icon name="cart" size={17} className="text-brand" /> Shopping list
+            </h2>
             <p className="text-2xs text-content-faint mb-2">De-duplicated — buy once, use across the week.</p>
             <div className="z-card divide-y divide-line">
               {plan.shoppingList.map((line) => (

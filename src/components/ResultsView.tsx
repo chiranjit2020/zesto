@@ -5,17 +5,18 @@ import { rankRecipes, suggestRelaxations } from '../domain/recommend';
 import { MatchCard } from './RecipeCard';
 import { EmptyState } from './ui/primitives';
 import { Button } from './ui/Button';
+import type { IconName } from './ui/Icon';
 
 export function ResultsView({
   ctx,
   onRelax,
   limit = 12,
-  emptyIcon = '🤔',
+  emptyIcon = 'search',
 }: {
   ctx: DecisionContext;
   onRelax?: (next: DecisionContext) => void;
   limit?: number;
-  emptyIcon?: string;
+  emptyIcon?: IconName;
 }) {
   const results = useMemo(() => rankRecipes(RECIPES, ctx, { limit }), [ctx, limit]);
   const relaxations = useMemo(

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Icon, type IconName } from './Icon';
 
 export function Chip({
   active,
@@ -111,21 +112,19 @@ export function Badge({
 }
 
 export function EmptyState({
-  icon = '🍳',
+  icon = 'cook',
   title,
   body,
   action,
 }: {
-  icon?: string;
+  icon?: IconName;
   title: string;
   body?: string;
   action?: ReactNode;
 }) {
   return (
     <div className="text-center py-12 px-6 animate-rise">
-      <div className="text-4xl mb-3" aria-hidden>
-        {icon}
-      </div>
+      <Icon name={icon} size={40} strokeWidth={1.6} className="mx-auto mb-3 text-content-faint" />
       <h3 className="text-lg font-bold">{title}</h3>
       {body && <p className="text-sm text-content-muted mt-1.5 max-w-xs mx-auto">{body}</p>}
       {action && <div className="mt-5 flex justify-center">{action}</div>}

@@ -8,6 +8,7 @@ import { useDecisionContext } from '../app/useDecisionContext';
 import { Sheet } from '../components/ui/Sheet';
 import { Button } from '../components/ui/Button';
 import { EmptyState, Badge, SectionHeader } from '../components/ui/primitives';
+import { Icon } from '../components/ui/Icon';
 import { RecipeCard } from '../components/RecipeCard';
 import { relativeDay } from '../lib/format';
 
@@ -50,7 +51,7 @@ export function Pantry() {
 
       {items.length === 0 ? (
         <EmptyState
-          icon="🧺"
+          icon="nav-pantry"
           title="Nothing here yet"
           body="Add a few ingredients and let's see what you can make."
           action={<Button onClick={() => setSheetOpen(true)}>Add ingredients</Button>}
@@ -73,8 +74,9 @@ export function Pantry() {
           {mostUseful.length > 0 && (
             <div className="space-y-1">
               {mostUseful.map(({ it, count }) => (
-                <p key={it.id} className="text-sm text-content-muted">
-                  💡 You have <b className="text-content">{INGREDIENT_BY_ID.get(it.ingredientId)?.name}</b> — usable in {count} recipes.
+                <p key={it.id} className="text-sm text-content-muted flex items-start gap-1.5">
+                  <Icon name="insight" size={15} className="text-caution mt-0.5 shrink-0" />
+                  <span>You have <b className="text-content">{INGREDIENT_BY_ID.get(it.ingredientId)?.name}</b> — usable in {count} recipes.</span>
                 </p>
               ))}
             </div>

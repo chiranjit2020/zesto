@@ -138,10 +138,16 @@ ranks, it does not just filter — and the "nothing matches, relax one of these?
 
 - **Type:** Quicksand (self-hosted via `@fontsource`), 400/500/600/700. One modular scale
   (1.20 ratio), `clamp()` for display sizes.
-- **Colour:** Vite-inspired — electric blue `#3B82F6→#41D1FF`, vivid purple `#7C3AED→#BD34FE`,
-  deep ink `#0B1020` / slate surfaces. Used **for meaning** (primary action, active, progress,
-  recommendation confidence, category accents, brand moments), never as blanket gradient.
-  Full light + dark palettes as CSS custom properties; dark is the Midnight surface too.
+- **Colour:** the official logo palette (`zesto-logo.jpg`) — purple `#9035C0`, electric blue
+  `#4CBDF7`, yellow `#FDCF00` / amber `#F7B200`, near-black `#0A0A12`. Used **for meaning**
+  (primary action, active, progress, recommendation confidence, mode accents, brand moments),
+  never as blanket gradient. Full light + dark palettes as CSS custom properties; dark is the
+  Midnight surface too.
+- **Icons:** one registry (`components/ui/Icon.tsx`) mapping semantic names → `lucide-react`
+  (MIT). Replaces every emoji. Each situational mode has a signature reduced-motion-safe
+  animation (`zi-*` keyframes) — a mount pop, plus hover/tap motion or a slow ambient loop
+  (moon breathes, low-battery pulses). The ribbon-Z (`ZMark`) is still the loading + cook-
+  progress mark.
 - **Confidence colour ramp:** red-amber-green mapped to score, used on the match bar.
 - **Primitives:** `Button`, `IconButton`, `Card`, `Chip`, `Stat`, `MetricTile`, `ProgressRing`
   (the Zesto ribbon-Z as the progress mark), `Sheet`/`Dialog`, `SegmentedControl`,
@@ -157,7 +163,7 @@ ranks, it does not just filter — and the "nothing matches, relax one of these?
 
 **There is no database.** §38 is explicit: *do NOT initially build complex backend
 infrastructure*. 99 recipes plus a handful of small per-user collections do not warrant
-one, and a static PWA on GitHub + Vercel has nothing to run a server process on.
+one, and a static PWA on GitHub Pages has nothing to run a server process on.
 
 **Content** — compiled into the app as `src/data/*.json` (the CONTENT FOUNDATION),
 loaded and indexed once by `catalog.ts`. Normalised in spirit — `Recipe` has
@@ -198,7 +204,8 @@ State (src/state/*)            Zustand + persist — prefs · pantry · kitchen 
   ↓                            (localStorage; each store is the local repo)
 Catalog (src/data/catalog.ts) loads the committed JSON seed, derives effort, indexes it
 
-No server. GitHub → Vercel (static). vercel.json = SPA rewrite + cache headers.
+No server. GitHub → GitHub Pages (static), via .github/workflows/deploy.yml.
+Served under base '/zesto/'; a build-time 404.html copy handles SPA deep links.
 ```
 
 - **Offline-first is the default path, not a fallback** (§7). The recipe catalog is a

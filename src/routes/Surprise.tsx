@@ -5,6 +5,7 @@ import { ConstraintForm, NO_CONSTRAINTS, type Constraints } from '../components/
 import { RecipeMeta } from '../components/RecipeMeta';
 import { Button, ButtonLink } from '../components/ui/Button';
 import { ZMark } from '../components/ui/ZMark';
+import { Icon } from '../components/ui/Icon';
 import { RECIPES } from '../data/catalog';
 import { rankRecipes } from '../domain/recommend';
 import { useDecisionContext } from '../app/useDecisionContext';
@@ -29,7 +30,7 @@ export function Surprise() {
 
   return (
     <div className="space-y-6">
-      <PageHeader emoji="🎲" title="Surprise me" sub="Give me the limits. I'll pick." />
+      <PageHeader icon="mode-surprise" iconMotion="tumble" title="Surprise me" sub="Give me the limits. I'll pick." />
 
       <section className="z-card p-4">
         <ConstraintForm value={constraints} onChange={setConstraints} />
@@ -40,8 +41,9 @@ export function Surprise() {
           <div className={rolling ? 'animate-spin' : ''}>
             <ZMark size={64} />
           </div>
-          <Button size="lg" className="mt-6" onClick={roll} disabled={rolling}>
-            {rolling ? 'Deciding…' : "🎲 Decide for me"}
+          <Button size="lg" className="mt-6 group" onClick={roll} disabled={rolling}>
+            <Icon name="mode-surprise" size={18} motion="tumble" />
+            {rolling ? 'Deciding…' : 'Decide for me'}
           </Button>
         </div>
       ) : (

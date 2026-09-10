@@ -34,7 +34,7 @@ export function WhatCanIMake() {
   return (
     <div className="space-y-6">
       <PageHeader
-        emoji="🍳"
+        icon="mode-make"
         title="What can I make?"
         sub="From what you've got, your budget, time and energy."
       />

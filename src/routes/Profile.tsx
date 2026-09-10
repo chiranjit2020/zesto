@@ -7,6 +7,7 @@ import { RECIPE_BY_NUMBER } from '../data/catalog';
 import { MetricTile, SectionHeader, Chip, EmptyState, Badge } from '../components/ui/primitives';
 import { Segmented } from '../components/ui/Segmented';
 import { Button } from '../components/ui/Button';
+import { Icon } from '../components/ui/Icon';
 import { RecipeCard } from '../components/RecipeCard';
 import { rupee2, relativeDay } from '../lib/format';
 import { CHALLENGES, challengeProgress } from '../domain/challenges';
@@ -39,9 +40,13 @@ export function Profile() {
 
       {/* ---- weekly dashboard (§14) ---- */}
       <section>
-        <SectionHeader title="This week" sub={streak > 0 ? `${streak}-day cooking streak 🔥` : 'Cook something to start your streak'} />
+        <SectionHeader
+          title="This week"
+          sub={streak > 0 ? `${streak}-day cooking streak` : 'Cook something to start your streak'}
+          action={streak > 0 ? <Icon name="streak" size={18} className="text-caution" /> : undefined}
+        />
         {stats.mealsCooked === 0 ? (
-          <EmptyState icon="📊" title="No meals logged yet" body="Finish a recipe in cooking mode and it lands here." />
+          <EmptyState icon="trend" title="No meals logged yet" body="Finish a recipe in cooking mode and it lands here." />
         ) : (
           <>
             <div className="grid grid-cols-3 gap-2.5">
@@ -72,7 +77,10 @@ export function Profile() {
             return (
               <div key={c.id} className="z-card p-3.5">
                 <div className="flex items-center justify-between">
-                  <div className="font-bold text-sm">{c.emoji} {c.title}</div>
+                  <div className="font-bold text-sm flex items-center gap-1.5">
+                    <Icon name={c.icon} size={16} className="text-caution shrink-0" />
+                    {c.title}
+                  </div>
                   {p.done ? <Badge tone="positive">done</Badge> : <span className="text-2xs text-content-faint">{p.current}/{c.target}</span>}
                 </div>
                 <p className="text-2xs text-content-faint mt-0.5">{c.description}</p>
@@ -136,7 +144,7 @@ export function Profile() {
             <div className="flex flex-wrap gap-1.5">
               {EQUIPMENT_OPTIONS.map((e) => (
                 <Chip key={e.id} active={prefs.equipmentOwned.includes(e.id)} onClick={() => prefs.toggleEquipment(e.id)}>
-                  {e.emoji} {e.label}
+                  <Icon name={e.icon} size={15} className="-ml-0.5" /> {e.label}
                 </Chip>
               ))}
             </div>
