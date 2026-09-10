@@ -87,6 +87,10 @@ npm run seed:build
 - `scripts/canonicalize.py` — ingredient strings → 82 canonical ingredients with
   categories and staple flags; heuristic nutrition; derived tags
 
+`npm run assets:build` (`scripts/make_brand_assets.py`) regenerates every PWA icon,
+the 16 iOS launch screens, favicons and the OG card from the official logo
+(`zesto-logo.jpg`) — each a Lanczos crop of the real artwork, no redrawing.
+
 ## Deployment
 
 ```

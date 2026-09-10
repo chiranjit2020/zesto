@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 interface ZMarkProps {
   size?: number;
   /** 0..1 — draws the ribbon Z as cooking/loading progress */
@@ -14,6 +16,7 @@ export function ZMark({ size = 40, progress, className, title = 'Zesto' }: ZMark
   const animated = progress != null;
   const pathLen = 100;
   const dash = animated ? pathLen * Math.max(0, Math.min(1, progress)) : pathLen;
+  const gid = `zmark-${useId()}`;
 
   return (
     <svg
@@ -25,8 +28,9 @@ export function ZMark({ size = 40, progress, className, title = 'Zesto' }: ZMark
       aria-label={title}
     >
       <defs>
-        <linearGradient id="zmark-grad" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={gid} x1="0.1" y1="0" x2="0.9" y2="1">
           <stop offset="0" stopColor="rgb(var(--z-purple))" />
+          <stop offset="0.5" stopColor="rgb(var(--z-yellow))" />
           <stop offset="1" stopColor="rgb(var(--z-blue))" />
         </linearGradient>
       </defs>
@@ -34,7 +38,7 @@ export function ZMark({ size = 40, progress, className, title = 'Zesto' }: ZMark
         d="M18 19 H46 L18 45 H46"
         fill="none"
         stroke="rgb(var(--z-line))"
-        strokeWidth="7.5"
+        strokeWidth="8"
         strokeLinecap="round"
         strokeLinejoin="round"
         opacity={animated ? 0.5 : 0}
@@ -42,8 +46,8 @@ export function ZMark({ size = 40, progress, className, title = 'Zesto' }: ZMark
       <path
         d="M18 19 H46 L18 45 H46"
         fill="none"
-        stroke="url(#zmark-grad)"
-        strokeWidth="7.5"
+        stroke={`url(#${gid})`}
+        strokeWidth="8"
         strokeLinecap="round"
         strokeLinejoin="round"
         pathLength={pathLen}
@@ -51,7 +55,8 @@ export function ZMark({ size = 40, progress, className, title = 'Zesto' }: ZMark
         strokeDashoffset={pathLen - dash}
         style={animated ? { transition: 'stroke-dashoffset .5s var(--z-ease)' } : undefined}
       />
-      <circle cx="46" cy="45" r="4.4" fill="rgb(var(--z-yellow))" />
+      {/* leaf terminal, echoing the official mark */}
+      <path d="M48 13 q6 3 4 9 q-6 -1 -4 -9 Z" fill="rgb(var(--z-blue))" />
     </svg>
   );
 }

@@ -8,12 +8,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'offline.html', 'icons/*.png'],
+      includeAssets: ['favicon.svg', 'favicon.ico', 'favicon-96.png', 'offline.html', 'icons/*.png'],
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff2,json}'],
-        // recipe seed is part of the JS bundle, but cache any runtime JSON too
+        // precache the shell + catalog + icons; NOT the ~7 MB of iOS splash screens
+        // (only one is ever used per device, and iOS fetches it at launch anyway)
+        globPatterns: ['**/*.{js,css,html,woff2,json}', 'icons/*.png'],
+        globIgnores: ['**/splash/**'],
         navigateFallback: '/offline.html',
-        navigateFallbackDenylist: [/^\/api/, /^\/auth/],
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.destination === 'font',
@@ -21,9 +23,9 @@ export default defineConfig({
             options: { cacheName: 'zesto-fonts', expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 } },
           },
           {
-            urlPattern: ({ url }) => url.pathname.startsWith('/icons/'),
+            urlPattern: ({ url }) => url.pathname.startsWith('/splash/'),
             handler: 'CacheFirst',
-            options: { cacheName: 'zesto-icons', expiration: { maxEntries: 30 } },
+            options: { cacheName: 'zesto-splash', expiration: { maxEntries: 20 } },
           },
         ],
       },
@@ -31,16 +33,18 @@ export default defineConfig({
         name: 'Zesto',
         short_name: 'Zesto',
         description: 'Tell Zesto your situation. Zesto tells you what you can eat.',
-        theme_color: '#0B1020',
-        background_color: '#0B1020',
+        theme_color: '#0A0A12',
+        background_color: '#0A0A12',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
+        id: '/',
         scope: '/',
         categories: ['food', 'lifestyle', 'utilities'],
         icons: [
-          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
           { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },

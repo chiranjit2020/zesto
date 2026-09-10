@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "seed:build": "python scripts/extract_text.py && python scripts/parse_pdf.py && python scripts/canonicalize.py"
+    "seed:build": "python scripts/extract_text.py && python scripts/parse_pdf.py && python scripts/canonicalize.py",
+    "assets:build": "python scripts/make_brand_assets.py"
   },
   "dependencies": {
     "@fontsource/quicksand": "^5.1.0",
