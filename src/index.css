@@ -1,0 +1,75 @@
+@import '@fontsource/quicksand/400.css';
+@import '@fontsource/quicksand/500.css';
+@import '@fontsource/quicksand/600.css';
+@import '@fontsource/quicksand/700.css';
+@import './styles/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    background: rgb(var(--z-ink));
+  }
+  body {
+    @apply bg-surface text-content font-sans antialiased;
+    overscroll-behavior-y: none;
+  }
+  h1, h2, h3 {
+    @apply font-bold tracking-tight text-balance;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--z-brand));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  ::selection {
+    background: rgb(var(--z-purple) / 0.25);
+  }
+}
+
+@layer components {
+  .z-card {
+    @apply rounded-lg bg-surface-raised border border-line shadow-card;
+  }
+  .z-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-raised
+           px-3 py-1.5 text-xs font-semibold text-content-muted transition-colors;
+  }
+  .z-chip[data-active='true'] {
+    @apply border-transparent bg-brand text-on-brand;
+  }
+  .z-tap {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  .z-stat-num {
+    @apply font-bold tabular-nums tracking-tight;
+  }
+  .z-gradient-text {
+    background: var(--z-grad-brand);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .pb-safe { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
+  .grad-brand { background-image: var(--z-grad-brand); }
+  .grad-warm { background-image: var(--z-grad-warm); }
+  .grad-night { background-image: var(--z-grad-night); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

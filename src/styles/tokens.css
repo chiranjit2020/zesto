@@ -1,0 +1,94 @@
+/* Zesto design tokens — palette from zesto.png (Coolors export).
+   purple #9035C0 · blue #4CBDF7 · yellow #FDCF00 · amber #F7B200 · ink #0B1020
+   Colour carries meaning: primary action, active, progress, confidence, brand moments. */
+
+:root {
+  --z-blue: 76 189 247;
+  --z-purple: 144 53 192;
+  --z-yellow: 253 207 0;
+  --z-amber: 247 178 0;
+
+  /* light surface */
+  --z-ink: 11 16 32;
+  --z-surface: 249 250 252;
+  --z-surface-raised: 255 255 255;
+  --z-surface-sunken: 241 243 248;
+  --z-line: 224 227 235;
+  --z-text: 24 27 42;
+  --z-text-muted: 92 99 122;
+  --z-text-faint: 138 144 165;
+
+  --z-brand: var(--z-purple);
+  --z-on-brand: 255 255 255;
+
+  --z-positive: 34 158 108;
+  --z-caution: 213 141 0;
+  --z-critical: 214 58 63;
+
+  --z-ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --z-grad-brand: linear-gradient(118deg, rgb(var(--z-purple)), rgb(var(--z-blue)));
+  --z-grad-warm: linear-gradient(118deg, rgb(var(--z-amber)), rgb(var(--z-yellow)));
+  --z-grad-night: linear-gradient(160deg, #201246, #0b1020 62%);
+}
+
+:root[data-theme='dark'] {
+  --z-ink: 6 9 18;
+  --z-surface: 12 16 30;
+  --z-surface-raised: 20 26 44;
+  --z-surface-sunken: 9 12 24;
+  --z-line: 39 46 71;
+  --z-text: 233 236 245;
+  --z-text-muted: 165 172 197;
+  --z-text-faint: 118 126 154;
+
+  --z-brand: var(--z-blue);
+  --z-on-brand: 8 12 24;
+
+  --z-positive: 61 194 138;
+  --z-caution: 247 178 0;
+  --z-critical: 240 110 114;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --z-ink: 6 9 18;
+    --z-surface: 12 16 30;
+    --z-surface-raised: 20 26 44;
+    --z-surface-sunken: 9 12 24;
+    --z-line: 39 46 71;
+    --z-text: 233 236 245;
+    --z-text-muted: 165 172 197;
+    --z-text-faint: 118 126 154;
+    --z-brand: var(--z-blue);
+    --z-on-brand: 8 12 24;
+    --z-positive: 61 194 138;
+    --z-caution: 247 178 0;
+    --z-critical: 240 110 114;
+  }
+}
+
+/* Midnight mode: a scoped dark surface even when the app theme is light.
+   `color`/`background` are set explicitly because CSS inherits a computed colour,
+   not the custom-property reference — descendants otherwise keep the light `color`. */
+[data-surface='midnight'] {
+  --z-surface: 10 12 24;
+  --z-surface-raised: 18 20 40;
+  --z-surface-sunken: 7 9 18;
+  --z-line: 42 40 78;
+  --z-text: 233 232 245;
+  --z-text-muted: 168 165 200;
+  --z-text-faint: 120 118 150;
+  --z-brand: var(--z-purple);
+  --z-on-brand: 255 255 255;
+  --z-positive: 61 194 138;
+  --z-caution: 247 178 0;
+  --z-critical: 240 110 114;
+  color-scheme: dark;
+  color: rgb(var(--z-text));
+  background-color: rgb(var(--z-surface));
+}
+[data-surface='midnight'] .z-card {
+  background-color: rgb(var(--z-surface-raised));
+  border-color: rgb(var(--z-line));
+}

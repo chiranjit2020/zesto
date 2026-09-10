@@ -1,0 +1,678 @@
+{
+ "categories": [
+  "condiment",
+  "dairy",
+  "fruit",
+  "grain",
+  "herb",
+  "leftover",
+  "oil-fat",
+  "other",
+  "pantry",
+  "protein",
+  "pulse",
+  "seasoning",
+  "snack",
+  "spice",
+  "sweetener",
+  "vegetable"
+ ],
+ "ingredients": [
+  {
+   "id": "salt",
+   "name": "Salt",
+   "category": "seasoning",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 69
+  },
+  {
+   "id": "cooking-oil",
+   "name": "Cooking oil",
+   "category": "oil-fat",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 53
+  },
+  {
+   "id": "onion",
+   "name": "Onion",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 20,
+   "used_in_count": 49
+  },
+  {
+   "id": "turmeric",
+   "name": "Turmeric",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 31
+  },
+  {
+   "id": "water",
+   "name": "Water",
+   "category": "other",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 30
+  },
+  {
+   "id": "red-chilli-powder",
+   "name": "Red chilli powder",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 27
+  },
+  {
+   "id": "tomato",
+   "name": "Tomato",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 7,
+   "used_in_count": 24
+  },
+  {
+   "id": "egg",
+   "name": "Eggs",
+   "category": "protein",
+   "is_staple": false,
+   "shelf_life_days": 14,
+   "used_in_count": 20
+  },
+  {
+   "id": "rice",
+   "name": "Rice",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 60,
+   "used_in_count": 19
+  },
+  {
+   "id": "chaat-masala",
+   "name": "Chaat masala",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 16
+  },
+  {
+   "id": "bread",
+   "name": "Bread",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 4,
+   "used_in_count": 14
+  },
+  {
+   "id": "black-pepper",
+   "name": "Black pepper",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 12
+  },
+  {
+   "id": "green-chilli",
+   "name": "Green chilli",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 10,
+   "used_in_count": 12
+  },
+  {
+   "id": "lemon",
+   "name": "Lemon",
+   "category": "fruit",
+   "is_staple": false,
+   "shelf_life_days": 14,
+   "used_in_count": 11
+  },
+  {
+   "id": "maggi-noodles",
+   "name": "Maggi / instant noodles",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 180,
+   "used_in_count": 11
+  },
+  {
+   "id": "roti",
+   "name": "Roti / chapati",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 2,
+   "used_in_count": 11
+  },
+  {
+   "id": "peanuts",
+   "name": "Peanuts",
+   "category": "protein",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 10
+  },
+  {
+   "id": "butter",
+   "name": "Butter",
+   "category": "oil-fat",
+   "is_staple": false,
+   "shelf_life_days": 30,
+   "used_in_count": 9
+  },
+  {
+   "id": "coriander",
+   "name": "Coriander leaves",
+   "category": "herb",
+   "is_staple": false,
+   "shelf_life_days": 4,
+   "used_in_count": 9
+  },
+  {
+   "id": "curd",
+   "name": "Curd (yoghurt)",
+   "category": "dairy",
+   "is_staple": false,
+   "shelf_life_days": 5,
+   "used_in_count": 9
+  },
+  {
+   "id": "cumin-seeds",
+   "name": "Cumin seeds",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 8
+  },
+  {
+   "id": "ghee",
+   "name": "Ghee",
+   "category": "oil-fat",
+   "is_staple": false,
+   "shelf_life_days": 90,
+   "used_in_count": 8
+  },
+  {
+   "id": "milk",
+   "name": "Milk",
+   "category": "dairy",
+   "is_staple": false,
+   "shelf_life_days": 3,
+   "used_in_count": 8
+  },
+  {
+   "id": "sugar",
+   "name": "Sugar",
+   "category": "sweetener",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 8
+  },
+  {
+   "id": "chilli-flakes",
+   "name": "Chilli flakes",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 7
+  },
+  {
+   "id": "garam-masala",
+   "name": "Garam masala",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 7
+  },
+  {
+   "id": "mustard-seeds",
+   "name": "Mustard seeds",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 7
+  },
+  {
+   "id": "capsicum",
+   "name": "Capsicum (bell pepper)",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 7,
+   "used_in_count": 6
+  },
+  {
+   "id": "cardamom",
+   "name": "Cardamom",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 6
+  },
+  {
+   "id": "atta",
+   "name": "Atta (wheat flour)",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 5
+  },
+  {
+   "id": "banana",
+   "name": "Banana",
+   "category": "fruit",
+   "is_staple": false,
+   "shelf_life_days": 5,
+   "used_in_count": 5
+  },
+  {
+   "id": "besan",
+   "name": "Besan (gram flour)",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 90,
+   "used_in_count": 5
+  },
+  {
+   "id": "garlic",
+   "name": "Garlic",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 30,
+   "used_in_count": 5
+  },
+  {
+   "id": "mixed-vegetables",
+   "name": "Mixed vegetables",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 5,
+   "used_in_count": 5
+  },
+  {
+   "id": "soy-sauce",
+   "name": "Soy sauce",
+   "category": "condiment",
+   "is_staple": false,
+   "shelf_life_days": 180,
+   "used_in_count": 5
+  },
+  {
+   "id": "cheese-slice",
+   "name": "Cheese slice",
+   "category": "dairy",
+   "is_staple": false,
+   "shelf_life_days": 20,
+   "used_in_count": 4
+  },
+  {
+   "id": "cinnamon",
+   "name": "Cinnamon",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 4
+  },
+  {
+   "id": "ketchup",
+   "name": "Tomato ketchup",
+   "category": "condiment",
+   "is_staple": false,
+   "shelf_life_days": 60,
+   "used_in_count": 4
+  },
+  {
+   "id": "potato",
+   "name": "Potato",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 20,
+   "used_in_count": 4
+  },
+  {
+   "id": "boiled-chickpeas",
+   "name": "Boiled chickpeas (chana)",
+   "category": "protein",
+   "is_staple": false,
+   "shelf_life_days": 3,
+   "used_in_count": 3
+  },
+  {
+   "id": "carrot",
+   "name": "Carrot",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 14,
+   "used_in_count": 3
+  },
+  {
+   "id": "cucumber",
+   "name": "Cucumber",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 5,
+   "used_in_count": 3
+  },
+  {
+   "id": "curry-leaves",
+   "name": "Curry leaves",
+   "category": "herb",
+   "is_staple": false,
+   "shelf_life_days": 7,
+   "used_in_count": 3
+  },
+  {
+   "id": "jaggery",
+   "name": "Jaggery",
+   "category": "sweetener",
+   "is_staple": false,
+   "shelf_life_days": 180,
+   "used_in_count": 3
+  },
+  {
+   "id": "peas",
+   "name": "Peas",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 90,
+   "used_in_count": 3
+  },
+  {
+   "id": "desiccated-coconut",
+   "name": "Desiccated coconut",
+   "category": "pantry",
+   "is_staple": false,
+   "shelf_life_days": 90,
+   "used_in_count": 2
+  },
+  {
+   "id": "honey",
+   "name": "Honey",
+   "category": "sweetener",
+   "is_staple": false,
+   "shelf_life_days": 365,
+   "used_in_count": 2
+  },
+  {
+   "id": "moong-dal",
+   "name": "Moong dal",
+   "category": "pulse",
+   "is_staple": false,
+   "shelf_life_days": 180,
+   "used_in_count": 2
+  },
+  {
+   "id": "paneer",
+   "name": "Paneer",
+   "category": "protein",
+   "is_staple": false,
+   "shelf_life_days": 3,
+   "used_in_count": 2
+  },
+  {
+   "id": "papad",
+   "name": "Papad",
+   "category": "snack",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 2
+  },
+  {
+   "id": "poha",
+   "name": "Poha (flattened rice)",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 2
+  },
+  {
+   "id": "rolled-oats",
+   "name": "Rolled oats",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 2
+  },
+  {
+   "id": "sooji",
+   "name": "Sooji (semolina)",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 2
+  },
+  {
+   "id": "spinach",
+   "name": "Spinach",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 3,
+   "used_in_count": 2
+  },
+  {
+   "id": "toor-dal",
+   "name": "Toor dal",
+   "category": "pulse",
+   "is_staple": false,
+   "shelf_life_days": 180,
+   "used_in_count": 2
+  },
+  {
+   "id": "baking-soda",
+   "name": "Baking soda",
+   "category": "other",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 1
+  },
+  {
+   "id": "banana-chips",
+   "name": "Banana chips",
+   "category": "snack",
+   "is_staple": false,
+   "shelf_life_days": 30,
+   "used_in_count": 1
+  },
+  {
+   "id": "bay-leaf",
+   "name": "Bay leaf",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 1
+  },
+  {
+   "id": "biscuits",
+   "name": "Biscuits",
+   "category": "snack",
+   "is_staple": false,
+   "shelf_life_days": 60,
+   "used_in_count": 1
+  },
+  {
+   "id": "chilli-sauce",
+   "name": "Chilli sauce",
+   "category": "condiment",
+   "is_staple": false,
+   "shelf_life_days": 180,
+   "used_in_count": 1
+  },
+  {
+   "id": "clove-spice",
+   "name": "Clove (spice)",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 1
+  },
+  {
+   "id": "cocoa-powder",
+   "name": "Cocoa powder",
+   "category": "pantry",
+   "is_staple": false,
+   "shelf_life_days": 365,
+   "used_in_count": 1
+  },
+  {
+   "id": "coconut-milk",
+   "name": "Coconut milk",
+   "category": "pantry",
+   "is_staple": false,
+   "shelf_life_days": 4,
+   "used_in_count": 1
+  },
+  {
+   "id": "cornflour",
+   "name": "Cornflour",
+   "category": "pantry",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 1
+  },
+  {
+   "id": "dalia",
+   "name": "Dalia (broken wheat)",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 1
+  },
+  {
+   "id": "eggplant",
+   "name": "Eggplant (baingan)",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 5,
+   "used_in_count": 1
+  },
+  {
+   "id": "ginger",
+   "name": "Ginger",
+   "category": "vegetable",
+   "is_staple": false,
+   "shelf_life_days": 21,
+   "used_in_count": 1
+  },
+  {
+   "id": "leftover-sabzi",
+   "name": "Leftover sabzi",
+   "category": "leftover",
+   "is_staple": false,
+   "shelf_life_days": 2,
+   "used_in_count": 1
+  },
+  {
+   "id": "makhana",
+   "name": "Makhana (fox nuts)",
+   "category": "snack",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 1
+  },
+  {
+   "id": "mint",
+   "name": "Mint",
+   "category": "herb",
+   "is_staple": false,
+   "shelf_life_days": 4,
+   "used_in_count": 1
+  },
+  {
+   "id": "oregano",
+   "name": "Oregano",
+   "category": "spice",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 1
+  },
+  {
+   "id": "peanut-butter",
+   "name": "Peanut butter",
+   "category": "protein",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 1
+  },
+  {
+   "id": "popcorn-kernels",
+   "name": "Popcorn kernels",
+   "category": "snack",
+   "is_staple": false,
+   "shelf_life_days": 180,
+   "used_in_count": 1
+  },
+  {
+   "id": "puffed-rice",
+   "name": "Puffed rice (muri)",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 60,
+   "used_in_count": 1
+  },
+  {
+   "id": "rajma",
+   "name": "Rajma (kidney beans)",
+   "category": "protein",
+   "is_staple": false,
+   "shelf_life_days": 3,
+   "used_in_count": 1
+  },
+  {
+   "id": "rusks",
+   "name": "Rusks",
+   "category": "snack",
+   "is_staple": false,
+   "shelf_life_days": 60,
+   "used_in_count": 1
+  },
+  {
+   "id": "spring-onion",
+   "name": "Spring onion",
+   "category": "herb",
+   "is_staple": false,
+   "shelf_life_days": 7,
+   "used_in_count": 1
+  },
+  {
+   "id": "sprouted-moong",
+   "name": "Sprouted moong",
+   "category": "protein",
+   "is_staple": false,
+   "shelf_life_days": 3,
+   "used_in_count": 1
+  },
+  {
+   "id": "tea-leaves",
+   "name": "Tea leaves",
+   "category": "pantry",
+   "is_staple": false,
+   "shelf_life_days": 180,
+   "used_in_count": 1
+  },
+  {
+   "id": "vermicelli",
+   "name": "Vermicelli (semiya)",
+   "category": "grain",
+   "is_staple": false,
+   "shelf_life_days": 120,
+   "used_in_count": 1
+  },
+  {
+   "id": "chutney",
+   "name": "Chutney",
+   "category": "condiment",
+   "is_staple": false,
+   "shelf_life_days": 7,
+   "used_in_count": 0
+  },
+  {
+   "id": "vinegar",
+   "name": "Vinegar",
+   "category": "condiment",
+   "is_staple": true,
+   "shelf_life_days": null,
+   "used_in_count": 0
+  }
+ ]
+}
