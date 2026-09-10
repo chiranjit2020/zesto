@@ -10,10 +10,3 @@ interface WakeLock {
   request(type: 'screen'): Promise<WakeLockSentinel>;
 }
 
-interface ImportMetaEnv {
-  readonly VITE_SUPABASE_URL?: string;
-  readonly VITE_SUPABASE_ANON_KEY?: string;
-}
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}

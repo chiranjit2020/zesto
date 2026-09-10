@@ -52,7 +52,11 @@ Ridiculously Easy Meals"**, parsed into structured data. Nothing is invented.
 
 Vite · React 18 + TypeScript · React Router · Zustand (persisted, on-device) ·
 Tailwind (tokenised design system) · vite-plugin-pwa / Workbox · Vitest.
-Supabase (Postgres + Auth + RLS) is **optional** — see below.
+
+**No backend, no database.** The 99 recipes are compiled into the app; everything
+personal (pantry, history, favorites, preferences, an in-progress cook) is stored in
+the browser per device. The whole stack is GitHub → Vercel (static). Cross-device sync
+and accounts are a deliberate later phase (§38).
 
 ## Getting started
 
@@ -83,33 +87,27 @@ npm run seed:build
 - `scripts/canonicalize.py` — ingredient strings → 82 canonical ingredients with
   categories and staple flags; heuristic nutrition; derived tags
 
-## Optional: Supabase backend
-
-Enables accounts + cross-device sync for personal data. The app degrades gracefully
-to on-device storage when it's absent.
-
-```bash
-# 1. create a project, then apply the schema
-supabase db push   # or paste supabase/migrations/*.sql into the SQL editor
-
-# 2. seed content (service-role key stays in your shell, never in the app)
-SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node supabase/seed.mjs
-
-# 3. point the app at it
-cp .env.example .env   # fill VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
-```
-
-Only the anon key ever reaches the browser. Every personal table has RLS
-(`user_id = auth.uid()`); content tables are world-readable.
-
 ## Deployment
 
 ```
-GitHub → Vercel (static build, output: dist) → Supabase (optional)
+GitHub → Vercel (static build, output: dist)
 ```
 
-Vercel: framework preset **Vite**, build `npm run build`, output `dist`. Add the two
-`VITE_SUPABASE_*` variables only if you're using the backend.
+Vercel: framework preset **Vite**, root directory `./`, build `npm run build`, output
+`dist`. **No environment variables.** `vercel.json` handles the SPA rewrite (so
+`/r/:slug` deep links don't 404) and cache headers.
+
+> If the deployment sits behind a login wall, turn off **Settings → Deployment
+> Protection → Vercel Authentication** for production — a protected URL breaks the
+> installable PWA and every shared recipe link.
+
+### If you later want cross-device sync
+
+The `src/state/*` stores are the seam. Each is a small persisted collection
+(`pantry_items`, `meal_history`, `favorites`, `user_preferences`, `meal_plans`) that a
+backend would mirror 1:1. Adding sync is additive — wrap the store actions with a
+writer that also pushes to `/api/*` serverless routes, and reconcile on reconnect. It
+does not touch the domain layer or the UI.
 
 ## Project layout
 
@@ -122,7 +120,6 @@ src/
   components/   design-system primitives (ui/) + recipe components
   routes/       one file per screen
 scripts/        the PDF → JSON content pipeline
-supabase/       schema migrations + content seed script
 docs/           ARCHITECTURE.md — the full design rationale (§48 process)
 ```
 

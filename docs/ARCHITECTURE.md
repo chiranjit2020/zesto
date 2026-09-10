@@ -153,29 +153,35 @@ ranks, it does not just filter — and the "nothing matches, relax one of these?
 
 ---
 
-## STEP 7 · Database schema (`supabase/migrations/`)
+## STEP 7 · Data model & persistence
 
-PostgreSQL via Supabase. Public content is world-readable; personal data is per-user with RLS.
+**There is no database.** §38 is explicit: *do NOT initially build complex backend
+infrastructure*. 99 recipes plus a handful of small per-user collections do not warrant
+one, and a static PWA on GitHub + Vercel has nothing to run a server process on.
 
-**Content (public, read-only to clients):**
-`ingredients` · `recipes` · `recipe_ingredients` (fk recipe, fk ingredient, qty, unit, optional,
-raw_text) · `recipe_steps` (fk recipe, position, text, timer_seconds) ·
-`recipe_equipment` · `equipment` · `tags` · `recipe_tags` · `recipe_nutrition` ·
-`recipe_cost_items` · `recipe_substitutions`.
+**Content** — compiled into the app as `src/data/*.json` (the CONTENT FOUNDATION),
+loaded and indexed once by `catalog.ts`. Normalised in spirit — `Recipe` has
+`ingredients[]`, `steps[]`, `equipment[]`, `costBreakdownItems[]`, `nutrition`,
+`tags[]` — so the same objects would map cleanly onto tables later. Growing to 5,000+
+recipes is "more rows in the seed"; past ~1,000 the seed becomes a fetched, precached
+asset backed by IndexedDB, and `catalog.ts` is the only file that changes.
 
-**Personal (RLS: `user_id = auth.uid()`):**
-`profiles` · `user_preferences` (diet, default budget/time/effort, equipment owned) ·
-`pantry_items` (fk ingredient, qty, unit, expiry, est_value, added_at) ·
-`favorites` · `meal_history` (fk recipe, cooked_at, actual_cost, servings, rating,
-was_leftover_rescue) · `meal_plans` · `meal_plan_items` · `shopping_lists` ·
-`shopping_list_items` · `challenge_progress`.
+**Personal state** — five small collections, each a `zustand` store persisted to
+`localStorage`, private to the device:
 
-Every table: `id uuid default gen_random_uuid()`, `created_at`, `updated_at` (trigger).
-Indexes on all FKs, `recipes(estimated_cost_inr)`, `recipes(time_minutes)`,
-`recipe_ingredients(ingredient_id)`, `meal_history(user_id, cooked_at desc)`,
-`pantry_items(user_id, ingredient_id)`. RLS policies per operation; **service-role key never
-ships to the client** (§27). A `recipes_full` view + `search_recipes()` SQL function keep
-heavy joins server-side.
+| store | holds |
+|---|---|
+| `prefs` | diet, equipment owned, default budget/time/effort, servings, theme, liked tags |
+| `pantry` | `{ ingredientId, quantity, unit, expiry, estValueInr, addedAt }[]` |
+| `kitchen` | `meal_history[]` (recipe, cookedAt, cost, servings, rating, leftover-rescue, delivery-avoided) + `favorites[]` |
+| `cook` | the in-progress guided-cook session (recipe, step, completed steps) — survives a reload |
+| *(planner output is derived, not stored)* | |
+
+Reads and writes are synchronous and offline by construction. Each store's action
+surface is deliberately the shape a server collection would mirror 1:1, so adding
+cross-device sync later is a wrapper around the existing actions — not a re-model.
+That later backend (serverless `/api/*` + any datastore + a device/JWT identity) is
+**out of MVP scope**; nothing in `domain/` or `routes/` would change.
 
 ---
 
@@ -189,21 +195,21 @@ Application hooks (src/app/*)   useDecisionContext, useApplyTheme, useInstallPro
 Domain (src/domain/*)          recommend · cost · effort · plan · search · challenges
   ↓                            — pure, deterministic, unit-tested, zero I/O
 State (src/state/*)            Zustand + persist — prefs · pantry · kitchen · cook
-  ↓                            (localStorage today; each store is the local repo)
+  ↓                            (localStorage; each store is the local repo)
 Catalog (src/data/catalog.ts) loads the committed JSON seed, derives effort, indexes it
-  ↓
-Supabase (src/lib/supabase.ts)  OPTIONAL — returns null with no creds; the app never
-                                depends on it. Schema + seed live in supabase/.
+
+No server. GitHub → Vercel (static). vercel.json = SPA rewrite + cache headers.
 ```
 
 - **Offline-first is the default path, not a fallback** (§7). The recipe catalog is a
   committed JSON module precached by the service worker; pantry / saved / history /
   cook-session are Zustand stores persisted to `localStorage`. Everything — browse,
   search, pantry match, recommendations, cooking mode, dashboard — runs with no network.
-- **Why Zustand, not Dexie/IndexedDB** — §38 warns against "overengineered state
-  management". 99 recipes + a handful of small user collections do not need a database
-  in the browser. The `state/*` stores expose the same shape a `SupabaseRepo` would, so
-  swapping in server-backed sync later is additive, not a rewrite.
+- **Why Zustand + localStorage, not a database anywhere** — §38 warns against
+  "overengineered state management" and "complex backend infrastructure". 99 recipes +
+  five small user collections need neither an in-browser database nor a server. The
+  `state/*` stores expose exactly the shape a server collection would mirror, so adding
+  cross-device sync later is a wrapper around the store actions, not a rewrite.
 - **The catalog is its own build chunk** (`manualChunks` in `vite.config.ts`). App shell
   is ~16 KB gzip + ~54 KB vendor; the recipe data (~78 KB gzip) loads in parallel and is
   cached permanently. Past roughly a thousand recipes this becomes a fetched, precached
@@ -212,7 +218,7 @@ Supabase (src/lib/supabase.ts)  OPTIONAL — returns null with no creds; the app
   fonts and icons; `navigateFallback` → `/offline.html`; runtime `CacheFirst` for fonts
   and icons. Real manifest, maskable icon, `display: standalone`, theme-color splash.
 - **Stack:** Vite · React Router · Zustand + persist · Tailwind (CSS-variable tokens) ·
-  Vitest + Testing Library. `@supabase/supabase-js` is the only optional-path dependency.
+  vite-plugin-pwa · Vitest + Testing Library. No runtime dependency needs a server.
 
 ---
 
@@ -229,18 +235,20 @@ scoring · favorites · recently-cooked · nutrition estimates · "relax a const
 **Phase 3 (partial):** weekly planner + aggregated shopping list · meal history · spending &
 calorie mini-dashboard.
 
-**Phase 4–5 (architected, not built):** challenges/streaks scaffolding · share cards
-(`/share` route + OG image) · Supabase sync path · learned scoring. Tables and interfaces
-exist; UI is stubbed.
+**Phase 4–5 (partly built / architected):** challenges + cooking streak (built, on the
+Profile screen) · share via Web Share API + a static OG card (built) · per-recipe
+generated share images · cross-device sync + accounts · learned scoring. The store
+seam and the `preferredNumbers` engine hook make each additive.
 
 ---
 
 ## STEP 10 · Security & quality notes
 
-- RLS on every personal table; anon key only in client; validation at the repo boundary
-  (zod schemas) as well as DB constraints.
+- No server, no database, no secrets — nothing to leak. Everything ships as static
+  assets; all user data stays in the browser it was entered on.
 - No `dangerouslySetInnerHTML`; all recipe text rendered as text.
-- Rate-limited Edge Function for the (future) share-image render.
+- `localStorage` reads/writes are wrapped so a private-mode or quota failure degrades
+  to an empty state rather than a crash.
 - a11y: semantic landmarks, focus rings, 44px targets, live regions for cook-step changes,
   reduced-motion, AA contrast in both themes.
 - Perf budget: < 120 KB gzipped initial JS; route-level code splitting; recipe images are
