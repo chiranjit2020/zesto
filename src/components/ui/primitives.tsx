@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Icon, type IconName } from './Icon';
+import { m } from './motion';
 
 export function Chip({
   active,
@@ -123,12 +124,23 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="text-center py-12 px-6 animate-rise">
-      <Icon name={icon} size={40} strokeWidth={1.6} className="mx-auto mb-3 text-content-faint" />
+    <m.div
+      className="text-center py-12 px-6"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <m.div
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.05 }}
+      >
+        <Icon name={icon} size={40} strokeWidth={1.6} className="mx-auto mb-3 text-content-faint" />
+      </m.div>
       <h3 className="text-lg font-bold">{title}</h3>
       {body && <p className="text-sm text-content-muted mt-1.5 max-w-xs mx-auto">{body}</p>}
       {action && <div className="mt-5 flex justify-center">{action}</div>}
-    </div>
+    </m.div>
   );
 }
 

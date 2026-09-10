@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { MatchCard } from '../components/RecipeCard';
-import { EmptyState } from '../components/ui/primitives';
-import { Segmented } from '../components/ui/Segmented';
+import { EmptyState, Chip } from '../components/ui/primitives';
 import { RECIPES, CURATED_LISTS } from '../data/catalog';
 import { rankRecipes } from '../domain/recommend';
 import { useDecisionContext } from '../app/useDecisionContext';
@@ -35,12 +34,13 @@ export function Tired() {
 
       <div className="z-card p-4">
         <label className="text-sm font-bold block mb-2">How much effort are you willing to make?</label>
-        <Segmented
-          options={MODES.map((m) => ({ value: m.id, label: m.label }))}
-          value={mode}
-          onChange={setMode}
-          size="sm"
-        />
+        <div className="flex flex-wrap gap-1.5">
+          {MODES.map((m) => (
+            <Chip key={m.id} active={mode === m.id} onClick={() => setMode(m.id)}>
+              {m.label}
+            </Chip>
+          ))}
+        </div>
       </div>
 
       {results.length === 0 ? (

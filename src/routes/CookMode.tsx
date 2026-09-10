@@ -9,6 +9,7 @@ import { timerSecondsFromStep } from '../lib/format';
 import { ZMark } from '../components/ui/ZMark';
 import { Button } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
+import { m, AnimatePresence } from '../components/ui/motion';
 import { RecipeMeta } from '../components/RecipeMeta';
 import { costView } from '../domain/cost';
 
@@ -70,9 +71,18 @@ export function CookMode() {
         <div className="text-sm font-bold text-brand mb-4">
           Step {cook.step + 1} of {total}
         </div>
-        <p className="text-2xl leading-relaxed font-semibold text-balance">
-          {recipe.steps[cook.step]}
-        </p>
+        <AnimatePresence mode="wait" initial={false}>
+          <m.p
+            key={cook.step}
+            className="text-2xl leading-relaxed font-semibold text-balance"
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -24 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {recipe.steps[cook.step]}
+          </m.p>
+        </AnimatePresence>
 
         {stepSeconds && (
           <div className="mt-8">

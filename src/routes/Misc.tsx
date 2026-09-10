@@ -20,8 +20,8 @@ export function About() {
   return (
     <div className="space-y-4">
       <PageHeader title="About Zesto" />
-      <div className="rounded-xl grad-night grid place-items-center py-10 px-6">
-        <ZLockup height={92} />
+      <div className="rounded-xl grad-night grid place-items-center py-12 px-6">
+        <ZLockup size={64} />
       </div>
       <p className="text-sm text-content-muted leading-relaxed">
         Zesto turns a recipe collection into a decision engine. Tell it your situation —

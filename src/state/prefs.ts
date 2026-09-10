@@ -47,9 +47,9 @@ export const usePrefs = create<PrefsStore>()(
 );
 
 export const DIETS: { id: Diet; label: string }[] = [
-  { id: 'any', label: 'No preference' },
+  { id: 'any', label: 'Any' },
   { id: 'vegetarian', label: 'Vegetarian' },
-  { id: 'egg', label: 'Egg is fine' },
+  { id: 'egg', label: 'Egg' },
 ];
 
 export const EQUIPMENT_OPTIONS: { id: EquipmentId; label: string; icon: IconName }[] = [

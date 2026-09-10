@@ -26,11 +26,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon.ico', 'favicon-96.png', 'offline.html', 'icons/*.png'],
+      includeAssets: [
+        'favicon.svg', 'favicon.ico', 'favicon-96.png', 'offline.html',
+        'icons/*.png', 'zesto-mark.png',
+      ],
       workbox: {
-        // precache the shell + catalog + icons; NOT the ~7 MB of iOS splash screens
-        // (only one is ever used per device, and iOS fetches it at launch anyway)
-        globPatterns: ['**/*.{js,css,html,woff2,json}', 'icons/*.png'],
+        // precache the shell + catalog + icons + logo; NOT the ~7 MB of iOS splash
+        // screens (only one is ever used per device, and iOS fetches it at launch)
+        globPatterns: ['**/*.{js,css,html,woff2,json}', 'icons/*.png', 'zesto-mark.png'],
         globIgnores: ['**/splash/**'],
         navigateFallback: `${BASE}offline.html`,
         navigateFallbackDenylist: [/^\/api/],
@@ -77,6 +80,9 @@ export default defineConfig({
         manualChunks(id) {
           if (/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler)\//.test(id)) {
             return 'vendor';
+          }
+          if (id.includes('node_modules/framer-motion/') || id.includes('node_modules/motion-')) {
+            return 'motion';
           }
           if (id.includes('node_modules/lucide-react/')) return 'icons';
           // the recipe seed is the CONTENT FOUNDATION — its own cache-stable chunk so the

@@ -95,14 +95,16 @@ def unmatte(rgb_img, bg, k=2.6):
     return out
 
 
-_mark_hi = master.crop(MARK_BBOX).resize((MARK.width * 3, MARK.height * 3), Image.LANCZOS)
-unmatte(_mark_hi, BG).resize(MARK.size, Image.LANCZOS).save(ROOT / "public" / "zesto-mark.png")
+def save_small(img_rgba, target_w, path):
+    """Downscale a transparent logo to a sensible display size + optimise the PNG."""
+    h = round(img_rgba.height * target_w / img_rgba.width)
+    img_rgba.resize((target_w, h), Image.LANCZOS).save(path, optimize=True)
 
-_lock = master.crop((261, 210, 738, 752))  # ribbon-Z + "zesto"
-_lock = _lock.resize((_lock.width * 2, _lock.height * 2), Image.LANCZOS)
-unmatte(_lock, BG).resize((_lock.width // 2, _lock.height // 2), Image.LANCZOS).save(
-    ROOT / "public" / "zesto-lockup.png"
-)
+
+# transparent ribbon-Z mark; the "Zesto" wordmark is rendered as text in-app so we
+# don't ship a heavy full-lockup PNG
+_mark_hi = master.crop(MARK_BBOX).resize((MARK.width * 3, MARK.height * 3), Image.LANCZOS)
+save_small(unmatte(_mark_hi, BG), 128, ROOT / "public" / "zesto-mark.png")
 
 # ---------- favicons ----------
 fav96 = icon_from_mark(96, 0.82)

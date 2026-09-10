@@ -1,16 +1,25 @@
-import { Link } from 'react-router-dom';
 import type { Recipe, ScoredRecipe } from '../domain/types';
 import { RecipeMeta, recipeArt } from './RecipeMeta';
 import { Badge } from './ui/primitives';
 import { Icon } from './ui/Icon';
 import { INGREDIENT_BY_ID } from '../data/catalog';
 import { ZMark } from './ui/ZMark';
+import { MotionLink, softSpring } from './ui/motion';
+
+const cardReveal = {
+  initial: { opacity: 0, y: 14 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.2 },
+  transition: { duration: 0.34, ease: [0.22, 1, 0.36, 1] as const },
+  whileTap: { scale: 0.975 },
+};
 
 export function RecipeCard({ recipe, footnote }: { recipe: Recipe; footnote?: string }) {
   return (
-    <Link
+    <MotionLink
+      {...cardReveal}
       to={`/r/${recipe.slug}`}
-      className="z-card overflow-hidden flex flex-col animate-rise"
+      className="z-card overflow-hidden flex flex-col"
     >
       <div className="h-20 relative" style={{ backgroundImage: recipeArt(recipe) }}>
         <div className="absolute inset-0 opacity-25 grid place-items-center">
@@ -29,7 +38,7 @@ export function RecipeCard({ recipe, footnote }: { recipe: Recipe; footnote?: st
           {footnote ?? recipe.tagline}
         </p>
       </div>
-    </Link>
+    </MotionLink>
   );
 }
 
@@ -41,7 +50,12 @@ export function MatchCard({ scored, rank }: { scored: ScoredRecipe; rank?: numbe
     scored.score >= 0.66 ? 'text-positive' : scored.score >= 0.4 ? 'text-caution' : 'text-content-muted';
 
   return (
-    <Link to={`/r/${recipe.slug}`} className="z-card p-4 block animate-rise">
+    <MotionLink
+      {...cardReveal}
+      transition={softSpring}
+      to={`/r/${recipe.slug}`}
+      className="z-card p-4 block"
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           {rank === 0 && <Badge tone="brand">Best match</Badge>}
@@ -94,7 +108,7 @@ export function MatchCard({ scored, rank }: { scored: ScoredRecipe; rank?: numbe
           </div>
         </div>
       )}
-    </Link>
+    </MotionLink>
   );
 }
 

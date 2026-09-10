@@ -10,6 +10,7 @@ import { RecipeCard } from '../components/RecipeCard';
 import { SectionHeader } from '../components/ui/primitives';
 import { Button, ButtonLink } from '../components/ui/Button';
 import { Icon, MODE_MOTION, type IconName } from '../components/ui/Icon';
+import { m, MotionLink, spring } from '../components/ui/motion';
 import { useMemo } from 'react';
 
 const MODES: { to: string; icon: IconName; title: string; sub: string }[] = [
@@ -82,24 +83,31 @@ export function Home() {
         <p className="text-sm font-semibold text-content-muted">{greeting}</p>
         <h1 className="text-display font-bold mt-1 text-balance">What can you make right now?</h1>
 
-        <div className="mt-5 grid grid-cols-2 gap-2.5">
-          {MODES.map((m, i) => (
-            <Link
-              key={m.to}
-              to={m.to}
+        <m.div
+          className="mt-5 grid grid-cols-2 gap-2.5"
+          initial="hidden"
+          animate="show"
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.045 } } }}
+        >
+          {MODES.map((mode) => (
+            <MotionLink
+              key={mode.to}
+              to={mode.to}
+              variants={{
+                hidden: { opacity: 0, y: 14, scale: 0.96 },
+                show: { opacity: 1, y: 0, scale: 1, transition: spring },
+              }}
+              whileTap={{ scale: 0.95 }}
               className="group z-card p-3.5 flex flex-col gap-1 min-h-[96px]"
             >
-              <span
-                className={`zi-enter mb-0.5 ${MODE_ACCENT[m.to] ?? 'text-brand'}`}
-                style={{ animationDelay: `${i * 55}ms` }}
-              >
-                <Icon name={m.icon} size={26} strokeWidth={2.2} motion={MODE_MOTION[m.icon]} />
+              <span className={`mb-0.5 ${MODE_ACCENT[mode.to] ?? 'text-brand'}`}>
+                <Icon name={mode.icon} size={26} strokeWidth={2.2} motion={MODE_MOTION[mode.icon]} />
               </span>
-              <span className="font-bold leading-tight text-sm">{m.title}</span>
-              <span className="text-2xs text-content-faint">{m.sub}</span>
-            </Link>
+              <span className="font-bold leading-tight text-sm">{mode.title}</span>
+              <span className="text-2xs text-content-faint">{mode.sub}</span>
+            </MotionLink>
           ))}
-        </div>
+        </m.div>
       </section>
 
       {isLateNight(now) && (

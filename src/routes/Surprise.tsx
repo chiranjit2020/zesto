@@ -6,6 +6,7 @@ import { RecipeMeta } from '../components/RecipeMeta';
 import { Button, ButtonLink } from '../components/ui/Button';
 import { ZMark } from '../components/ui/ZMark';
 import { Icon } from '../components/ui/Icon';
+import { m } from '../components/ui/motion';
 import { RECIPES } from '../data/catalog';
 import { rankRecipes } from '../domain/recommend';
 import { useDecisionContext } from '../app/useDecisionContext';
@@ -38,18 +39,35 @@ export function Surprise() {
 
       {!pick ? (
         <div className="text-center py-8">
-          <div className={rolling ? 'animate-spin' : ''}>
+          <m.div
+            animate={rolling ? { rotate: 360 } : { rotate: 0 }}
+            transition={rolling ? { duration: 0.6, repeat: Infinity, ease: 'linear' } : { type: 'spring' }}
+            className="inline-block"
+          >
             <ZMark size={64} />
-          </div>
+          </m.div>
           <Button size="lg" className="mt-6 group" onClick={roll} disabled={rolling}>
             <Icon name="mode-surprise" size={18} motion="tumble" />
             {rolling ? 'Deciding…' : 'Decide for me'}
           </Button>
         </div>
       ) : (
-        <div className="z-card p-6 text-center animate-rise">
+        <m.div
+          key={pick.recipe.number}
+          className="z-card p-6 text-center"
+          initial={{ opacity: 0, scale: 0.9, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        >
           <p className="text-sm font-semibold text-content-muted">Tonight you're making…</p>
-          <h2 className="text-2xl font-bold mt-1 z-gradient-text">{pick.recipe.title}</h2>
+          <m.h2
+            className="text-2xl font-bold mt-1 z-gradient-text"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+          >
+            {pick.recipe.title}
+          </m.h2>
           <div className="mt-3 flex justify-center">
             <RecipeMeta recipe={pick.recipe} />
           </div>
@@ -64,7 +82,7 @@ export function Surprise() {
           <Link to={`/r/${pick.recipe.slug}`} className="inline-block mt-3 text-xs font-semibold text-brand">
             See the full recipe first
           </Link>
-        </div>
+        </m.div>
       )}
     </div>
   );

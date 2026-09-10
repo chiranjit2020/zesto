@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { useApplyTheme } from './app/theme';
 import { ZMark } from './components/ui/ZMark';
+import { MotionProvider, AnimatePresence, m, pageVariants } from './components/ui/motion';
 import { Home } from './routes/Home';
 
 const WhatCanIMake = lazy(() => import('./routes/WhatCanIMake').then((m) => ({ default: m.WhatCanIMake })));
@@ -21,50 +22,74 @@ const Profile = lazy(() => import('./routes/Profile').then((m) => ({ default: m.
 const About = lazy(() => import('./routes/Misc').then((m) => ({ default: m.About })));
 const NotFound = lazy(() => import('./routes/Misc').then((m) => ({ default: m.NotFound })));
 
-function ScrollToTop() {
-  const { pathname } = useLocation();
+function useScrollToTop(key: string) {
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [pathname]);
-  return null;
+  }, [key]);
 }
 
 function Loading() {
   return (
     <div className="grid place-items-center py-24">
-      <div className="animate-pulse">
+      <m.div animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.4, repeat: Infinity }}>
         <ZMark size={48} />
-      </div>
+      </m.div>
     </div>
   );
 }
 
+/** the cooking screen is its own full-screen surface — no page-transition chrome */
+const FULLSCREEN = /^\/cook\//;
+
 export default function App() {
   useApplyTheme();
+  const location = useLocation();
+  useScrollToTop(location.pathname);
+  const fullscreen = FULLSCREEN.test(location.pathname);
+
+  const routes = (
+    <Routes location={location}>
+      <Route path="/" element={<Home />} />
+      <Route path="/make" element={<WhatCanIMake />} />
+      <Route path="/broke" element={<Broke />} />
+      <Route path="/tired" element={<Tired />} />
+      <Route path="/midnight" element={<Midnight />} />
+      <Route path="/leftovers" element={<Leftovers />} />
+      <Route path="/surprise" element={<Surprise />} />
+      <Route path="/improvise" element={<Improviser />} />
+      <Route path="/discover" element={<Discover />} />
+      <Route path="/r/:slug" element={<RecipeDetail />} />
+      <Route path="/cook/:slug" element={<CookMode />} />
+      <Route path="/pantry" element={<Pantry />} />
+      <Route path="/planner" element={<Planner />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/about" element={<About />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
 
   return (
-    <Layout>
-      <ScrollToTop />
-      <Suspense fallback={<Loading />}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/make" element={<WhatCanIMake />} />
-          <Route path="/broke" element={<Broke />} />
-          <Route path="/tired" element={<Tired />} />
-          <Route path="/midnight" element={<Midnight />} />
-          <Route path="/leftovers" element={<Leftovers />} />
-          <Route path="/surprise" element={<Surprise />} />
-          <Route path="/improvise" element={<Improviser />} />
-          <Route path="/discover" element={<Discover />} />
-          <Route path="/r/:slug" element={<RecipeDetail />} />
-          <Route path="/cook/:slug" element={<CookMode />} />
-          <Route path="/pantry" element={<Pantry />} />
-          <Route path="/planner" element={<Planner />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/about" element={<About />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </Layout>
+    <MotionProvider>
+      <Layout>
+        <Suspense fallback={<Loading />}>
+          {fullscreen ? (
+            routes
+          ) : (
+            <AnimatePresence mode="wait" initial={false}>
+              <m.div key={pageKey(location.pathname)} variants={pageVariants} initial="initial" animate="enter" exit="exit">
+                {routes}
+              </m.div>
+            </AnimatePresence>
+          )}
+        </Suspense>
+      </Layout>
+    </MotionProvider>
   );
+}
+
+/** Transition on top-level section change, not on every query-param tweak. */
+function pageKey(pathname: string): string {
+  const seg = pathname.split('/').filter(Boolean);
+  if (seg[0] === 'r') return 'recipe';
+  return seg[0] ?? 'home';
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { EffortLevel, EquipmentId } from '../domain/types';
-import { Segmented, RangeControl } from './ui/Segmented';
+import { RangeControl } from './ui/Segmented';
 import { Chip } from './ui/primitives';
 import { Icon } from './ui/Icon';
 import { EQUIPMENT_OPTIONS } from '../state/prefs';
@@ -90,16 +90,21 @@ export function ConstraintForm({
 
           <div>
             <label className="text-sm font-bold block mb-2">How much effort?</label>
-            <Segmented
-              size="sm"
-              value={value.maxEffort}
-              onChange={(v) => set({ maxEffort: v === value.maxEffort ? null : v })}
-              options={[
-                { value: 'very-low' as const, label: 'Barely any' },
-                { value: 'low' as const, label: 'A little' },
-                { value: 'medium' as const, label: "I'm up for it" },
-              ]}
-            />
+            <div className="flex flex-wrap gap-1.5">
+              {([
+                ['very-low', 'Barely any'],
+                ['low', 'A little'],
+                ['medium', "I'm up for it"],
+              ] as const).map(([v, lbl]) => (
+                <Chip
+                  key={v}
+                  active={value.maxEffort === v}
+                  onClick={() => set({ maxEffort: value.maxEffort === v ? null : v })}
+                >
+                  {lbl}
+                </Chip>
+              ))}
+            </div>
           </div>
 
           <div>

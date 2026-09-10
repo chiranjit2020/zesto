@@ -22,7 +22,7 @@ export function Segmented<T extends string | number>({
     <div
       role="radiogroup"
       aria-label={label}
-      className={`flex max-w-full gap-1 overflow-x-auto no-scrollbar rounded-full bg-surface-sunken p-1 ${
+      className={`inline-flex max-w-full gap-1 overflow-x-auto no-scrollbar rounded-full bg-surface-sunken p-1 align-top ${
         size === 'sm' ? 'text-xs' : 'text-sm'
       } ${className}`}
     >
