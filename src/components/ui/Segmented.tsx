@@ -9,20 +9,22 @@ export function Segmented<T extends string | number>({
   onChange,
   size = 'md',
   label,
+  className = '',
 }: {
   options: Option<T>[];
   value: T | null;
   onChange: (v: T) => void;
   size?: 'sm' | 'md';
   label?: string;
+  className?: string;
 }) {
   return (
     <div
       role="radiogroup"
       aria-label={label}
-      className={`inline-flex flex-wrap gap-1 rounded-full bg-surface-sunken p-1 ${
+      className={`flex max-w-full gap-1 overflow-x-auto no-scrollbar rounded-full bg-surface-sunken p-1 ${
         size === 'sm' ? 'text-xs' : 'text-sm'
-      }`}
+      } ${className}`}
     >
       {options.map((o) => {
         const active = o.value === value;
@@ -32,7 +34,7 @@ export function Segmented<T extends string | number>({
             role="radio"
             aria-checked={active}
             onClick={() => onChange(o.value)}
-            className={`rounded-full font-semibold transition-all z-tap ${
+            className={`shrink-0 whitespace-nowrap rounded-full font-semibold transition-all min-h-[38px] ${
               size === 'sm' ? 'px-3 py-1.5' : 'px-4 py-2'
             } ${
               active

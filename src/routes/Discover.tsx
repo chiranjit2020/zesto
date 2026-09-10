@@ -44,21 +44,25 @@ export function Discover() {
         aria-label="Search recipes"
       />
 
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4">
+      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+        <button onClick={() => setSheetOpen(true)} className="z-chip z-tap !py-2 border-brand/40 text-brand">
+          <Icon name="checklist" size={14} />
+          Filters{count > 0 ? ` · ${count}` : ''}
+        </button>
         <Chip active={filters.maxCostInr === 30} onClick={() => patch({ maxCostInr: filters.maxCostInr === 30 ? null : 30 })}>Under ₹30</Chip>
         <Chip active={filters.maxTimeMinutes === 15} onClick={() => patch({ maxTimeMinutes: filters.maxTimeMinutes === 15 ? null : 15 })}>15 min</Chip>
         <Chip active={filters.noCook} onClick={() => patch({ noCook: !filters.noCook })}>No cooking</Chip>
         <Chip active={filters.diet === 'vegetarian'} onClick={() => patch({ diet: filters.diet === 'vegetarian' ? 'any' : 'vegetarian' })}>Veg</Chip>
         <Chip active={filters.highProtein} onClick={() => patch({ highProtein: !filters.highProtein })}>High protein</Chip>
-        <button onClick={() => setSheetOpen(true)} className="z-chip z-tap !py-2 shrink-0 border-brand/40 text-brand">
-          Filters{count > 0 ? ` · ${count}` : ''}
-        </button>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-content-muted">
-        <span>{results.length} {results.length === 1 ? 'recipe' : 'recipes'}</span>
+      <div className="flex items-center justify-between gap-3 text-xs text-content-muted">
+        <span className="shrink-0">
+          {results.length} {results.length === 1 ? 'recipe' : 'recipes'}
+        </span>
         <Segmented
           size="sm"
+          className="min-w-0"
           value={filters.sort}
           onChange={(v) => patch({ sort: v })}
           options={[
