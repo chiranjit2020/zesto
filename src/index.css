@@ -33,8 +33,31 @@
 }
 
 @layer components {
+  /* gradient edge via a masked ::before ring — sits above the card's own
+     background but below its content, and never touches `background`, so cards
+     that set their own gradient/tint (grad-brand, grad-night, bg-caution/5…) still work */
   .z-card {
-    @apply rounded-lg bg-surface-raised border border-line shadow-card;
+    @apply relative rounded-lg bg-surface-raised shadow-card;
+  }
+  .z-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--z-card-border);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+    transition: background 0.25s var(--z-ease);
+  }
+  a.z-card:hover::before,
+  button.z-card:hover::before,
+  .z-card.group:hover::before,
+  .z-card:focus-within::before {
+    background: var(--z-card-border-hover);
   }
   .z-chip {
     @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface-raised

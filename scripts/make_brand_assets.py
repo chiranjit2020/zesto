@@ -65,6 +65,45 @@ icon_from_mark(167, 0.60).save(ICONS / "apple-touch-icon-167.png")
 icon_from_mark(152, 0.60).save(ICONS / "apple-touch-icon-152.png")
 icon_from_mark(120, 0.60).save(ICONS / "apple-touch-icon-120.png")
 
+# ---------- transparent logo for in-app use (header, about) ----------
+import math
+
+
+def unmatte(rgb_img, bg, k=2.6):
+    """Lift the artwork's near-black background to transparency and un-multiply the
+    dark fringe, so the mark / wordmark drop cleanly onto any surface."""
+    src = rgb_img.load()
+    w, h = rgb_img.size
+    out = Image.new("RGBA", (w, h))
+    dst = out.load()
+    br, bgc, bb = bg
+    for y in range(h):
+        for x in range(w):
+            r, g, b = src[x, y]
+            d = math.sqrt((r - br) ** 2 + (g - bgc) ** 2 + (b - bb) ** 2)
+            a = max(0.0, min(1.0, d * k / 441.0))
+            if a <= 0.004:
+                dst[x, y] = (0, 0, 0, 0)
+                continue
+            nr, ng, nb = (br + (r - br) / a, bgc + (g - bgc) / a, bb + (b - bb) / a)
+            dst[x, y] = (
+                max(0, min(255, round(nr))),
+                max(0, min(255, round(ng))),
+                max(0, min(255, round(nb))),
+                round(a * 255),
+            )
+    return out
+
+
+_mark_hi = master.crop(MARK_BBOX).resize((MARK.width * 3, MARK.height * 3), Image.LANCZOS)
+unmatte(_mark_hi, BG).resize(MARK.size, Image.LANCZOS).save(ROOT / "public" / "zesto-mark.png")
+
+_lock = master.crop((261, 210, 738, 752))  # ribbon-Z + "zesto"
+_lock = _lock.resize((_lock.width * 2, _lock.height * 2), Image.LANCZOS)
+unmatte(_lock, BG).resize((_lock.width // 2, _lock.height // 2), Image.LANCZOS).save(
+    ROOT / "public" / "zesto-lockup.png"
+)
+
 # ---------- favicons ----------
 fav96 = icon_from_mark(96, 0.82)
 fav96.save(ROOT / "public" / "favicon-96.png")

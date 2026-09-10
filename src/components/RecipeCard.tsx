@@ -10,7 +10,7 @@ export function RecipeCard({ recipe, footnote }: { recipe: Recipe; footnote?: st
   return (
     <Link
       to={`/r/${recipe.slug}`}
-      className="z-card overflow-hidden flex flex-col hover:border-brand/40 transition-colors animate-rise"
+      className="z-card overflow-hidden flex flex-col animate-rise"
     >
       <div className="h-20 relative" style={{ backgroundImage: recipeArt(recipe) }}>
         <div className="absolute inset-0 opacity-25 grid place-items-center">
@@ -41,7 +41,7 @@ export function MatchCard({ scored, rank }: { scored: ScoredRecipe; rank?: numbe
     scored.score >= 0.66 ? 'text-positive' : scored.score >= 0.4 ? 'text-caution' : 'text-content-muted';
 
   return (
-    <Link to={`/r/${recipe.slug}`} className="z-card p-4 block hover:border-brand/40 transition-colors animate-rise">
+    <Link to={`/r/${recipe.slug}`} className="z-card p-4 block animate-rise">
       <div className="flex items-start justify-between gap-3">
         <div>
           {rank === 0 && <Badge tone="brand">Best match</Badge>}

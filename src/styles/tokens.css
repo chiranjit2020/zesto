@@ -30,6 +30,14 @@
   --z-grad-brand: linear-gradient(118deg, rgb(var(--z-purple)), rgb(var(--z-blue)));
   --z-grad-warm: linear-gradient(118deg, rgb(var(--z-amber)), rgb(var(--z-yellow)));
   --z-grad-night: linear-gradient(160deg, #201246, #0b1020 62%);
+
+  /* card edge — a hint of the brand gradient, brighter on hover for tappable cards */
+  --z-card-border: linear-gradient(140deg,
+    rgb(var(--z-purple) / 0.28) 0%,
+    rgb(var(--z-blue) / 0.26) 55%,
+    rgb(var(--z-line) / 0.9) 100%);
+  --z-card-border-hover: linear-gradient(140deg,
+    rgb(var(--z-purple) / 0.7), rgb(var(--z-blue) / 0.6));
 }
 
 :root[data-theme='dark'] {
@@ -48,6 +56,13 @@
   --z-positive: 61 194 138;
   --z-caution: 247 178 0;
   --z-critical: 240 110 114;
+
+  --z-card-border: linear-gradient(140deg,
+    rgb(var(--z-purple) / 0.5) 0%,
+    rgb(var(--z-blue) / 0.42) 55%,
+    rgb(var(--z-line) / 0.85) 100%);
+  --z-card-border-hover: linear-gradient(140deg,
+    rgb(var(--z-purple) / 0.9), rgb(var(--z-blue) / 0.8));
 }
 
 @media (prefers-color-scheme: dark) {
@@ -65,6 +80,12 @@
     --z-positive: 61 194 138;
     --z-caution: 247 178 0;
     --z-critical: 240 110 114;
+    --z-card-border: linear-gradient(140deg,
+      rgb(var(--z-purple) / 0.5) 0%,
+      rgb(var(--z-blue) / 0.42) 55%,
+      rgb(var(--z-line) / 0.85) 100%);
+    --z-card-border-hover: linear-gradient(140deg,
+      rgb(var(--z-purple) / 0.9), rgb(var(--z-blue) / 0.8));
   }
 }
 
@@ -90,5 +111,10 @@
 }
 [data-surface='midnight'] .z-card {
   background-color: rgb(var(--z-surface-raised));
-  border-color: rgb(var(--z-line));
+}
+[data-surface='midnight'] {
+  --z-card-border: linear-gradient(140deg,
+    rgb(var(--z-purple) / 0.55), rgb(var(--z-blue) / 0.4) 55%, rgb(var(--z-line) / 0.9));
+  --z-card-border-hover: linear-gradient(140deg,
+    rgb(var(--z-purple) / 0.95), rgb(var(--z-blue) / 0.85));
 }

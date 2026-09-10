@@ -59,7 +59,7 @@ export function Pantry() {
       ) : (
         <>
           {expiring.length > 0 && (
-            <div className="z-card p-4 border-caution/40 bg-caution/5">
+            <div className="rounded-lg border border-caution/40 bg-caution/5 shadow-card p-4">
               <div className="text-sm font-bold text-caution mb-1">Use these soon</div>
               <div className="flex flex-wrap gap-1.5">
                 {expiring.map((it) => (

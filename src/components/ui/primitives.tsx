@@ -34,7 +34,7 @@ export function Card({
 }) {
   const Comp = as;
   return (
-    <Comp className={`z-card p-4 ${onClick ? 'cursor-pointer hover:border-brand/40 transition-colors' : ''} ${className}`} onClick={onClick}>
+    <Comp className={`z-card p-4 ${onClick ? 'cursor-pointer' : ''} ${className}`} onClick={onClick}>
       {children}
     </Comp>
   );

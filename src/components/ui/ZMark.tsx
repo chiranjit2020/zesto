@@ -61,11 +61,29 @@ export function ZMark({ size = 40, progress, className, title = 'Zesto' }: ZMark
   );
 }
 
+const MARK_SRC = `${import.meta.env.BASE_URL}zesto-mark.png`;
+const LOCKUP_SRC = `${import.meta.env.BASE_URL}zesto-lockup.png`;
+
+/** The official ribbon-Z mark (real artwork, transparent) + the Zesto wordmark. */
 export function ZWordmark({ className = '' }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 font-bold ${className}`}>
-      <ZMark size={26} />
+      <img src={MARK_SRC} alt="" width={26} height={26} className="select-none" draggable={false} />
       <span className="z-gradient-text text-xl tracking-tight">Zesto</span>
     </span>
+  );
+}
+
+/** The full official lockup (mark + "zesto"), for dark surfaces. */
+export function ZLockup({ className = '', height = 64 }: { className?: string; height?: number }) {
+  return (
+    <img
+      src={LOCKUP_SRC}
+      alt="Zesto"
+      height={height}
+      style={{ height, width: 'auto' }}
+      className={`select-none ${className}`}
+      draggable={false}
+    />
   );
 }

@@ -87,7 +87,7 @@ export function Home() {
             <Link
               key={m.to}
               to={m.to}
-              className="group z-card p-3.5 hover:border-brand/40 transition-colors flex flex-col gap-1 min-h-[96px]"
+              className="group z-card p-3.5 flex flex-col gap-1 min-h-[96px]"
             >
               <span
                 className={`zi-enter mb-0.5 ${MODE_ACCENT[m.to] ?? 'text-brand'}`}
@@ -122,7 +122,7 @@ export function Home() {
             <button
               key={q.label}
               onClick={() => navigate(q.to)}
-              className="z-chip z-tap !py-2 hover:border-brand/40"
+              className="z-chip z-tap !py-2"
             >
               {q.label}
             </button>

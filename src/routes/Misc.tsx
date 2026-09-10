@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
 import { ButtonLink } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
+import { ZLockup } from '../components/ui/ZMark';
 import { CATALOG_META } from '../data/catalog';
 
 export function NotFound() {
@@ -19,6 +20,9 @@ export function About() {
   return (
     <div className="space-y-4">
       <PageHeader title="About Zesto" />
+      <div className="rounded-xl grad-night grid place-items-center py-10 px-6">
+        <ZLockup height={92} />
+      </div>
       <p className="text-sm text-content-muted leading-relaxed">
         Zesto turns a recipe collection into a decision engine. Tell it your situation —
         broke, tired, midnight, leftover rice, ₹30, ten minutes — and it tells you what you
