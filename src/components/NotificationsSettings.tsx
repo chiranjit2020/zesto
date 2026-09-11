@@ -46,6 +46,12 @@ export function NotificationsSettings() {
     if (result.ok && result.token) {
       store.enable(result.token);
       setSupport('granted');
+      // No backend to register this with yet (Phase 3) — logged so it can be pasted
+      // into Firebase Console → Cloud Messaging → "Send test message" for a real
+      // end-to-end check in the meantime. Harmless to leave in: an FCM token is only
+      // useful together with this project's own server key, and isn't sensitive on
+      // its own the way an auth credential would be.
+      console.info('[Zesto] FCM token (for Firebase Console → Send test message):', result.token);
       return;
     }
     setSupport(await getNotificationSupportState());
