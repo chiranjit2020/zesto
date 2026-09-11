@@ -9,6 +9,7 @@ import {
   getNotificationSupportState,
   type NotificationSupportState,
 } from '../lib/notifications/permission';
+import { registerDevice } from '../lib/notifications/api';
 
 /**
  * The contextual notifications prompt (spec §5) — lives in Profile ("You"), never pops
@@ -46,12 +47,13 @@ export function NotificationsSettings() {
     if (result.ok && result.token) {
       store.enable(result.token);
       setSupport('granted');
-      // No backend to register this with yet (Phase 3) — logged so it can be pasted
-      // into Firebase Console → Cloud Messaging → "Send test message" for a real
-      // end-to-end check in the meantime. Harmless to leave in: an FCM token is only
-      // useful together with this project's own server key, and isn't sensitive on
-      // its own the way an auth credential would be.
-      console.info('[Zesto] FCM token (for Firebase Console → Send test message):', result.token);
+      // Harmless to leave in: an FCM token is only useful together with this
+      // project's own server key, and isn't sensitive the way an auth credential is.
+      console.info('[Zesto] FCM token:', result.token);
+      // Fire-and-forget: registerDevice no-ops until VITE_API_BASE_URL exists (Phase 3
+      // deploy), and even once it does, a failed registration here must never read as
+      // "notifications are broken" — the token is already valid and stored locally.
+      void registerDevice(store.deviceId, result.token);
       return;
     }
     setSupport(await getNotificationSupportState());

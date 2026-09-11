@@ -284,7 +284,21 @@ happened and was verified before any push-notification code touched it:
      while the app is already open, but there's no toast primitive in this app to
      route through yet — real polish item, not a silent shortcut.
 3. Vercel project + `api/` package + MongoDB connection + `notificationPreferences` /
-   `notificationDevices` collections + device-registration endpoint. *(current phase)*
+   `notificationDevices` collections + device-registration endpoint.
+   - ✅ **Code done** — `api/health.ts` (no-Mongo sanity check), `api/_lib/{mongo,cors,
+     validate}.ts`, `api/notifications/register-device.ts` (upserts a device + seeds
+     default preferences on first registration only), `api/notifications/preferences.ts`
+     (GET/POST, ahead of Phase 4's UI). `NotificationPreferences` type + its defaults
+     live in `src/domain/types.ts`, imported by both sides so client and API can't
+     silently drift apart. `src/lib/notifications/api.ts` + a `registerDevice()` call
+     wired into the enable flow — no-ops until `VITE_API_BASE_URL` exists, exactly like
+     an unconfigured Firebase project.
+   - **Blocked on:** the Vercel project itself doesn't exist yet — needs the account
+     created and the repo imported (guided, external action), then `MONGODB_URI` set as
+     a Vercel environment variable, then `VITE_API_BASE_URL` set once the deployment URL
+     is known. *(current step)*
+   - `api/tsconfig.json` + `npm run typecheck:api` — a separate typecheck pass, since
+     `api/` isn't part of the Vite app's module graph and Vercel compiles it independently.
 4. Preferences UI in Profile ("You") — writes to the Vercel API, not to `localStorage`.
 5. Manual test-notification path (spec §28), admin-gated.
 6. `notifications-dispatch.yml` cron + recommendation-engine integration in

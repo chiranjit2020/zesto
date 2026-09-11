@@ -123,6 +123,44 @@ export interface Preferences {
   likedTags: string[];
 }
 
+/**
+ * Notification preferences (notification-prompt.md §4/§26). Shared, type-only, between
+ * the client (src/lib/notifications/api.ts) and the Vercel API (api/notifications/*) so
+ * the two can't silently drift apart — see docs/NOTIFICATIONS_PLAN.md §5.
+ */
+export interface NotificationPreferences {
+  enabled: boolean;
+  meals: {
+    breakfast: boolean;
+    brunch: boolean;
+    lunch: boolean;
+    dinner: boolean;
+    supper: boolean;
+  };
+  smart: {
+    pantry: boolean;
+    leftovers: boolean;
+    budget: boolean;
+    weeklySummary: boolean;
+  };
+  maxPerDay: number;
+  quietHours: {
+    enabled: boolean;
+    start: string; // "HH:MM", 24h, in `timezone` below
+    end: string;
+  };
+  timezone: string; // IANA, e.g. "Asia/Kolkata"
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  enabled: true,
+  meals: { breakfast: true, brunch: false, lunch: true, dinner: true, supper: false },
+  smart: { pantry: true, leftovers: true, budget: true, weeklySummary: true },
+  maxPerDay: 2,
+  quietHours: { enabled: true, start: '23:00', end: '07:00' },
+  timezone: 'Asia/Kolkata',
+};
+
 /** Everything the decision engine needs to score a recipe. */
 export interface DecisionContext {
   pantry: string[]; // canonical ingredient ids the user has (staples auto-added)
