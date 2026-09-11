@@ -25,31 +25,24 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      // Hand-authored src/sw.ts owns the service worker instead of a generated one —
+      // the seam that lets Firebase Cloud Messaging's background-message handler live
+      // in the same worker as offline precaching, instead of a second one fighting it
+      // for the same scope. See docs/NOTIFICATIONS_PLAN.md §6.
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectManifest: {
+        // precache the shell + catalog + icons + logo; NOT the ~7 MB of iOS splash
+        // screens (only one is ever used per device, and iOS fetches it at launch)
+        globPatterns: ['**/*.{js,css,html,woff2,json}', 'icons/*.png', 'zesto-mark.png'],
+        globIgnores: ['**/splash/**'],
+      },
       registerType: 'autoUpdate',
       includeAssets: [
         'favicon.svg', 'favicon.ico', 'favicon-96.png', 'offline.html',
         'icons/*.png', 'zesto-mark.png',
       ],
-      workbox: {
-        // precache the shell + catalog + icons + logo; NOT the ~7 MB of iOS splash
-        // screens (only one is ever used per device, and iOS fetches it at launch)
-        globPatterns: ['**/*.{js,css,html,woff2,json}', 'icons/*.png', 'zesto-mark.png'],
-        globIgnores: ['**/splash/**'],
-        navigateFallback: `${BASE}offline.html`,
-        navigateFallbackDenylist: [/^\/api/],
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === 'font',
-            handler: 'CacheFirst',
-            options: { cacheName: 'zesto-fonts', expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 } },
-          },
-          {
-            urlPattern: ({ url }) => url.pathname.includes('/splash/'),
-            handler: 'CacheFirst',
-            options: { cacheName: 'zesto-splash', expiration: { maxEntries: 20 } },
-          },
-        ],
-      },
       manifest: {
         name: 'Zesto',
         short_name: 'Zesto',
