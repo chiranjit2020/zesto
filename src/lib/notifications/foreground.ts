@@ -18,7 +18,12 @@ export async function listenForForegroundMessages(): Promise<Unsubscribe | null>
   const messaging = await getMessagingIfSupported();
   if (!messaging) return null;
 
+  // eslint-disable-next-line no-console
+  console.info('[Zesto] foreground message listener attached');
+
   return onMessage(messaging, async (payload: MessagePayload) => {
+    // eslint-disable-next-line no-console
+    console.info('[Zesto] foreground message received:', payload);
     try {
       const data = payload.data ?? {};
       const title = data.title ?? payload.notification?.title ?? 'Zesto';
@@ -31,8 +36,12 @@ export async function listenForForegroundMessages(): Promise<Unsubscribe | null>
         tag: data.type ?? 'zesto-notification',
         data: { url: data.url ?? import.meta.env.BASE_URL },
       });
-    } catch {
-      /* never let a malformed/unexpected payload break the app (spec §29) */
+      // eslint-disable-next-line no-console
+      console.info('[Zesto] showNotification resolved — should be visible now');
+    } catch (err) {
+      // Deliberately logged, not swallowed: spec §29 means a bad payload must never
+      // crash the app, not that failures should be invisible while debugging one.
+      console.error('[Zesto] failed to display foreground notification:', err);
     }
   });
 }

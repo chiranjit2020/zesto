@@ -77,9 +77,11 @@ const firebaseConfig = {
 if (Object.values(firebaseConfig).every(Boolean)) {
   isSupported()
     .then((supported) => {
+      console.info('[Zesto SW] Firebase Messaging supported:', supported);
       if (!supported) return;
       const app = initializeApp(firebaseConfig);
       const messaging = getMessaging(app);
+      console.info('[Zesto SW] background message listener attached');
 
       // The backend (Phase 3+) sends data-only messages, never a `notification` field —
       // a `notification` payload makes the browser auto-display a generic system
@@ -87,20 +89,26 @@ if (Object.values(firebaseConfig).every(Boolean)) {
       // target and per-category icon. Data-only means every notification, foreground or
       // background, renders through this one code path.
       onBackgroundMessage(messaging, (payload: MessagePayload) => {
+        console.info('[Zesto SW] background message received:', payload);
         const data = payload.data ?? {};
         const title = data.title ?? 'Zesto';
-        self.registration.showNotification(title, {
-          body: data.body,
-          icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
-          badge: `${import.meta.env.BASE_URL}icons/icon-192.png`,
-          tag: data.type ?? 'zesto-notification',
-          data: { url: data.url ?? import.meta.env.BASE_URL },
-        });
+        self.registration
+          .showNotification(title, {
+            body: data.body,
+            icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
+            badge: `${import.meta.env.BASE_URL}icons/icon-192.png`,
+            tag: data.type ?? 'zesto-notification',
+            data: { url: data.url ?? import.meta.env.BASE_URL },
+          })
+          .catch((err) => console.error('[Zesto SW] showNotification failed:', err));
       });
     })
-    .catch(() => {
-      /* messaging unavailable in this browser — offline/caching above still works */
+    .catch((err) => {
+      // Deliberately logged, not swallowed, while this is still being debugged.
+      console.error('[Zesto SW] Firebase Messaging init failed — offline/caching above is unaffected:', err);
     });
+} else {
+  console.info('[Zesto SW] Firebase not configured at build time — push disabled, offline caching unaffected');
 }
 
 // Deep-link on click (spec §17) — works whether Zesto is already open in a tab or not.
