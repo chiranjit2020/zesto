@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { Home } from '../routes/Home';
 import { Improviser } from '../routes/Improviser';
 import { Discover } from '../routes/Discover';
+import { Profile } from '../routes/Profile';
 
 describe('smoke — routes render without crashing', () => {
   it('Home asks the core question and shows the modes', () => {
@@ -35,5 +36,17 @@ describe('smoke — routes render without crashing', () => {
       </MemoryRouter>,
     );
     expect(screen.getByText(/all 99 recipes/i)).toBeInTheDocument();
+  });
+
+  it('Profile renders, including the notifications section, without crashing', async () => {
+    render(
+      <MemoryRouter>
+        <Profile />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText('Notifications')).toBeInTheDocument();
+    // the notifications support check is async (spec §5 — never prompt synchronously);
+    // wait for it to settle so its state update doesn't leak into the next test
+    expect(await screen.findByText(/not supported in this browser/i)).toBeInTheDocument();
   });
 });

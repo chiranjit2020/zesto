@@ -29,6 +29,17 @@ jobs:
       - run: npm ci
 
       - name: Typecheck, test, build
+        # VITE_FIREBASE_*/VITE_API_BASE_URL are public client config, not secrets (see
+        # .env.example) — stored as repo secrets anyway so nothing's hard-coded here.
+        # Missing/unset is fine: the app just runs with notifications unconfigured.
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_VAPID_KEY: ${{ secrets.VITE_FIREBASE_VAPID_KEY }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
         run: |
           npm run build      # tsc --noEmit && vite build (base: /zesto/)
           npm test

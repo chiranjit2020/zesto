@@ -250,11 +250,32 @@ happened and was verified before any push-notification code touched it:
 
 1. ✅ **Done** — Service-worker migration to `injectManifest`, offline behavior
    re-verified by hand (recipe browsing, pantry, cook mode, install prompt).
-2. Firebase project (Spark plan) + client SDK wiring (VAPID, permission UX skeleton) —
-   behind a feature flag, no-op if unconfigured (spec §29: Firebase unavailable → Zesto
-   still works normally). *(current phase)*
+2. ✅ **Done** — Firebase project (Spark plan, no billing) + client SDK wiring:
+   - `src/lib/notifications/firebase.ts` — guarded `initializeApp`/`getMessaging`,
+     `null` if unconfigured or unsupported.
+   - `src/lib/notifications/permission.ts` — the only place that ever calls
+     `Notification.requestPermission()`, bound to the app's own SW registration
+     (never a second `/firebase-messaging-sw.js`), every failure path returned not
+     thrown (spec §29).
+   - `src/state/notifications.ts` — anonymous `deviceId` (§9 Q4) + local
+     enabled/token state, persisted.
+   - `src/components/NotificationsSettings.tsx` — the contextual prompt (spec §5
+     copy) in Profile ("You"), handling unsupported/default/granted/denied and
+     permission-revoked-after-the-fact.
+   - `src/sw.ts` — `onBackgroundMessage` (data-only payloads, so both foreground and
+     background messages render through one code path with full control over
+     icon/deep-link) + `notificationclick` deep-linking (spec §17).
+   - `.github/workflows/deploy.yml` — bakes `VITE_FIREBASE_*`/`VITE_API_BASE_URL`
+     from repo secrets into the build; unset is fine, matches local unconfigured
+     behavior.
+   - Fixed along the way: `src/test/setup.ts` was missing a `localStorage` stub —
+     Node 22's own experimental global one shadows jsdom's, so any persisted
+     zustand store write during a test threw. General fix, not notifications-specific.
+   - **Not yet wired: actually registering the device anywhere.** `enableNotifications()`
+     gets a real FCM token and stores it locally; sending it to a backend is Phase 3,
+     since there's no backend yet.
 3. Vercel project + `api/` package + MongoDB connection + `notificationPreferences` /
-   `notificationDevices` collections + device-registration endpoint.
+   `notificationDevices` collections + device-registration endpoint. *(current phase)*
 4. Preferences UI in Profile ("You") — writes to the Vercel API, not to `localStorage`.
 5. Manual test-notification path (spec §28), admin-gated.
 6. `notifications-dispatch.yml` cron + recommendation-engine integration in

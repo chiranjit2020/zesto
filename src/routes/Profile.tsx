@@ -9,6 +9,7 @@ import { Segmented } from '../components/ui/Segmented';
 import { Button } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
 import { RecipeCard } from '../components/RecipeCard';
+import { NotificationsSettings } from '../components/NotificationsSettings';
 import { rupee2, relativeDay } from '../lib/format';
 import { CHALLENGES, challengeProgress } from '../domain/challenges';
 import { useInstallPrompt } from '../app/useInstallPrompt';
@@ -121,6 +122,8 @@ export function Profile() {
           </div>
         </section>
       )}
+
+      <NotificationsSettings />
 
       {/* ---- preferences (§28) ---- */}
       <section>
