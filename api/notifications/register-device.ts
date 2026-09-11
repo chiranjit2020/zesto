@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { applyCors } from '../_lib/cors';
-import { getDb } from '../_lib/mongo';
-import { isValidDeviceId, isValidFcmToken, isValidTimezone } from '../_lib/validate';
-import { DEFAULT_NOTIFICATION_PREFERENCES, type NotificationPreferences } from '../../src/domain/types';
+import { applyCors } from '../_lib/cors.js';
+import { getDb } from '../_lib/mongo.js';
+import { isValidDeviceId, isValidFcmToken, isValidTimezone } from '../_lib/validate.js';
+import { DEFAULT_NOTIFICATION_PREFERENCES, type NotificationPreferences } from '../../src/domain/types.js';
 
 interface DeviceDoc {
   _id: string;
