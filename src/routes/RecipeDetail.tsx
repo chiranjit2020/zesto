@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { RECIPE_BY_SLUG, INGREDIENT_BY_ID } from '../data/catalog';
 import { usePantry } from '../state/pantry';
@@ -10,6 +10,7 @@ import { Badge, EstimateTag } from '../components/ui/primitives';
 import { ButtonLink, Button } from '../components/ui/Button';
 import { ZMark } from '../components/ui/ZMark';
 import { Icon } from '../components/ui/Icon';
+import { shareRecipe } from '../lib/shareCard';
 
 export function RecipeDetail() {
   const { slug } = useParams();
@@ -17,6 +18,7 @@ export function RecipeDetail() {
   const pantryHas = usePantry((s) => s.items.map((i) => i.ingredientId));
   const addPantry = usePantry((s) => s.add);
   const { isFavorite, toggleFavorite } = useKitchen();
+  const [sharing, setSharing] = useState(false);
 
   const split = useMemo(() => {
     if (!recipe) return { have: [], need: [], optional: [] };
@@ -204,7 +206,20 @@ export function RecipeDetail() {
 
       <div className="flex gap-2">
         <ButtonLink to={`/cook/${recipe.slug}`} block>Start cooking</ButtonLink>
-        <Button variant="secondary" onClick={() => share(recipe.title, recipe.slug)}>Share</Button>
+        <Button
+          variant="secondary"
+          disabled={sharing}
+          onClick={async () => {
+            setSharing(true);
+            try {
+              await shareRecipe(recipe, 'discovered');
+            } finally {
+              setSharing(false);
+            }
+          }}
+        >
+          {sharing ? 'Preparing…' : 'Share'}
+        </Button>
       </div>
 
       <Link to="/discover" className="block text-center text-xs font-semibold text-brand pt-2">
@@ -212,18 +227,4 @@ export function RecipeDetail() {
       </Link>
     </div>
   );
-}
-
-async function share(title: string, slug: string) {
-  const url = `${location.origin}/r/${slug}`;
-  const text = `I'm making ${title} — found it on Zesto`;
-  try {
-    if (navigator.share) await navigator.share({ title: `Zesto · ${title}`, text, url });
-    else {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      alert('Link copied');
-    }
-  } catch {
-    /* cancelled */
-  }
 }

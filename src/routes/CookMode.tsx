@@ -12,6 +12,7 @@ import { Icon } from '../components/ui/Icon';
 import { m, AnimatePresence } from '../components/ui/motion';
 import { RecipeMeta } from '../components/RecipeMeta';
 import { costView } from '../domain/cost';
+import { shareRecipe } from '../lib/shareCard';
 
 export function CookMode() {
   const { slug } = useParams();
@@ -156,6 +157,7 @@ function CookComplete({
   const [logged, setLogged] = useState(false);
   const [leftoverRescue, setLeftoverRescue] = useState(recipe.tags.includes('uses-leftovers'));
   const [deliveryAvoided, setDeliveryAvoided] = useState(true);
+  const [sharing, setSharing] = useState(false);
   const cost = costView(recipe, servings);
 
   const finish = () => {
@@ -197,8 +199,19 @@ function CookComplete({
               Logged · ₹{cost.estimateInr} spent
               {deliveryAvoided && ` · ~₹${Math.max(0, 235 - cost.estimateInr)} saved vs ordering`}
             </p>
-            <Button block onClick={() => share(recipe.title, recipe.slug, cost.estimateInr)}>
-              Share what I made
+            <Button
+              block
+              disabled={sharing}
+              onClick={async () => {
+                setSharing(true);
+                try {
+                  await shareRecipe(recipe, 'cooked', cost.estimateInr);
+                } finally {
+                  setSharing(false);
+                }
+              }}
+            >
+              {sharing ? 'Preparing…' : 'Share what I made'}
             </Button>
             <Button variant="ghost" block onClick={onClose}>Done</Button>
           </div>
@@ -206,18 +219,4 @@ function CookComplete({
       </div>
     </div>
   );
-}
-
-async function share(title: string, slug: string, cost?: number) {
-  const url = `${location.origin}/r/${slug}`;
-  const text = cost ? `I made ${title} for ₹${cost} 🍳 #Zesto` : `I made ${title} #Zesto`;
-  try {
-    if (navigator.share) await navigator.share({ title: `Zesto · ${title}`, text, url });
-    else {
-      await navigator.clipboard.writeText(`${text} ${url}`);
-      alert('Copied — paste it anywhere');
-    }
-  } catch {
-    /* cancelled */
-  }
 }
