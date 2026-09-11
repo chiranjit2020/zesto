@@ -3,7 +3,7 @@ import { RecipeMeta, recipeArt } from './RecipeMeta';
 import { Badge } from './ui/primitives';
 import { Icon } from './ui/Icon';
 import { INGREDIENT_BY_ID } from '../data/catalog';
-import { ZMark } from './ui/ZMark';
+import { ZWatermark } from './ui/ZMark';
 import { MotionLink, softSpring } from './ui/motion';
 
 const cardReveal = {
@@ -22,8 +22,8 @@ export function RecipeCard({ recipe, footnote }: { recipe: Recipe; footnote?: st
       className="z-card overflow-hidden flex flex-col"
     >
       <div className="h-20 relative" style={{ backgroundImage: recipeArt(recipe) }}>
-        <div className="absolute inset-0 opacity-25 grid place-items-center">
-          <ZMark size={44} title="" />
+        <div className="absolute inset-0 grid place-items-center">
+          <ZWatermark size={44} />
         </div>
         {recipe.tags.includes('uses-leftovers') && (
           <span className="absolute top-2 left-2">

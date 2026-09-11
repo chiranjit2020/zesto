@@ -87,3 +87,22 @@ export function ZWordmark({ className = '', size = 26 }: { className?: string; s
 export function ZLockup({ className = '', size = 56 }: { className?: string; size?: number }) {
   return <ZWordmark size={size} className={className} />;
 }
+
+/**
+ * The official mark alone, faded, as a background watermark on a recipe's gradient art
+ * (Discover cards, recipe detail hero — §3's "recipe cards" recurrence). Real artwork,
+ * not the animated stand-in `ZMark` — that one stays reserved for loading/progress states.
+ */
+export function ZWatermark({ size = 44, opacity = 0.45, className = '' }: { size?: number; opacity?: number; className?: string }) {
+  return (
+    <img
+      src={MARK_SRC}
+      alt=""
+      width={size}
+      height={size}
+      style={{ width: size, height: 'auto', opacity }}
+      className={`select-none ${className}`}
+      draggable={false}
+    />
+  );
+}

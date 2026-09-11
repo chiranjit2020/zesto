@@ -8,7 +8,7 @@ import { RecipeMeta, recipeArt } from '../components/RecipeMeta';
 import { PageHeader } from '../components/PageHeader';
 import { Badge, EstimateTag } from '../components/ui/primitives';
 import { ButtonLink, Button } from '../components/ui/Button';
-import { ZMark } from '../components/ui/ZMark';
+import { ZWatermark } from '../components/ui/ZMark';
 import { Icon } from '../components/ui/Icon';
 import { shareRecipe } from '../lib/shareCard';
 
@@ -50,8 +50,8 @@ export function RecipeDetail() {
       <PageHeader title="" />
 
       <div className="-mt-2 rounded-xl overflow-hidden relative h-28" style={{ backgroundImage: recipeArt(recipe) }}>
-        <div className="absolute inset-0 grid place-items-center opacity-25">
-          <ZMark size={64} title="" />
+        <div className="absolute inset-0 grid place-items-center">
+          <ZWatermark size={64} />
         </div>
       </div>
 
