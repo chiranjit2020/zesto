@@ -5,6 +5,28 @@
 > and a realistic phased plan. Lives on `feature/push-notifications` only — `main` is
 > untouched until this is ready to merge.
 
+## 0. Decisions made so far (dated, so this doc stays honest as it evolves)
+
+- **2026-09-11 — Cloud accounts:** create Firebase + MongoDB Atlas from scratch (guided).
+- **2026-09-11 — Privacy model:** yes, sync pantry/history to MongoDB, but only for users
+  who opt into notifications (§9 Q3 below) — Profile copy will be updated to say so.
+- **2026-09-11 — Hosting:** keep GitHub Pages for the frontend, not Vercel.
+- **2026-09-11 — Service worker:** migrate to `injectManifest` now — **done**, merged to
+  this branch, offline mode manually re-verified by the user (build + preview + DevTools
+  offline toggle). See §6.
+- **2026-09-12 — Backend compute (supersedes §7's original "Firebase Cloud Functions
+  2nd gen + Cloud Scheduler"):** Firebase 2nd-gen Functions require the Blaze
+  (pay-as-you-go) plan the moment a function calls an external service like MongoDB —
+  Spark blocks all non-Google outbound network calls outright. Rather than require a
+  card on file, backend compute moves to **Vercel serverless functions** (free Hobby
+  tier, no billing account, unrestricted outbound calls) with **GitHub Actions
+  `schedule:` cron** (already used in this repo, free) replacing Cloud Scheduler as the
+  dispatcher trigger. Firebase itself is scoped down to exactly the two things that are
+  free on *any* plan, including Spark: **Cloud Messaging** (client SDK + Admin SDK send)
+  and **Analytics**. No Firebase Cloud Functions, no Cloud Scheduler, no Blaze upgrade.
+  Sections below are updated to match; anywhere `functions/` (Firebase) is mentioned in
+  older prose, read it as `api/` (Vercel).
+
 ---
 
 ## 1. Current architecture (as it actually is, not as the spec assumes)
@@ -35,13 +57,11 @@ before any of it gets built.
 - **Recommendation engine** (`src/domain/recommend.ts`) — the notification decision
   engine should call this directly, not reimplement scoring. It needs to run somewhere
   with access to a user's pantry/history — today that data lives only in the browser's
-  `localStorage`, which a server-side Cloud Function cannot read. This is the crux of
-  §4 below.
-- **Recipe catalog** (`src/data/*.json` via `src/data/catalog.ts`) — Cloud Functions
-  need read access to the same recipe data to score candidates. Since it's a committed
-  JSON module, the simplest path is shipping the same JSON as a Functions dependency
-  (keep one content source, imported in two runtimes) rather than duplicating it in
-  MongoDB.
+  `localStorage`, which a server-side function cannot read. This is the crux of §4 below.
+- **Recipe catalog** (`src/data/*.json` via `src/data/catalog.ts`) — the Vercel API
+  needs read access to the same recipe data to score candidates. Since it's a committed
+  JSON module, the simplest path is shipping the same JSON as an `api/` dependency (keep
+  one content source, imported in two runtimes) rather than duplicating it in MongoDB.
 - **Design tokens & component primitives** (`src/styles/tokens.css`, `src/components/ui/*`)
   — the preferences UI in §5 of the spec should be built from `Segmented`, `Chip`,
   `SectionHeader`, `z-card`, matching `Profile.tsx`'s existing "Preferences" section
@@ -55,44 +75,51 @@ before any of it gets built.
 ## 3. Files that would need modification
 
 - `src/routes/Profile.tsx` — add a "Notifications" section (spec §26), same pattern as
-  the existing "Preferences" section.
-- `src/App.tsx` — register the Firebase Messaging service worker alongside the PWA one
-  (see §6), mount a notification-permission prompt component contextually (spec §5).
-- `vite.config.ts` — `vite-plugin-pwa` config needs to either import Firebase Messaging
-  into its generated worker or switch strategies (see §6).
-- `.env.example` — new Firebase web config keys, `VITE_`-prefixed for the client bundle.
-- `package.json` — new dependency: `firebase` (Web SDK). Cloud Functions live in their
-  own `functions/` package with their own `package.json` (Node runtime, separate from
-  the Vite app).
-- `.github/workflows/deploy.yml` — no change needed for the frontend if we keep GitHub
-  Pages (see §9, question 2) — Cloud Functions deploy independently via `firebase
-  deploy`, which doesn't care what serves the static frontend.
+  the existing "Preferences" section. Its "Data" section copy ("Everything is stored on
+  this device only") gets an honest caveat once notifications are enabled (§9 Q3).
+- `src/App.tsx` / `src/sw.ts` — register the Firebase Messaging `onBackgroundMessage`
+  handler in the same worker as offline precaching (already migrated, see §6), mount a
+  notification-permission prompt component contextually (spec §5).
+- `.env.example` — new Firebase web config keys (`VITE_`-prefixed) + `VITE_API_BASE_URL`
+  pointing at the Vercel deployment.
+- `package.json` — new dependency: `firebase` (Web SDK, client-side only — no Admin SDK
+  or Functions SDK in the Vite app).
+- `.github/workflows/deploy.yml` — unchanged; still deploys the frontend to GitHub Pages.
+- **New:** `.github/workflows/notifications-dispatch.yml` — a `schedule:` cron workflow
+  (this repo already has one PWA-deploy workflow; this is a second, independent one)
+  that `curl`s the Vercel dispatcher endpoint with a shared secret header. This is what
+  replaces Cloud Scheduler.
 
 ## 4. New files required (once §9 is answered)
 
 ```
-functions/                          # Firebase Cloud Functions (separate Node package)
-  src/
-    scheduledNotificationDispatcher.ts   # Cloud Scheduler → evaluates all eligible users
-    evaluateNotification.ts              # user+context → send/skip decision
-    lib/recommend.ts                     # thin re-export/port of src/domain/recommend.ts
-    lib/mongo.ts                         # connection helper, indexes
-    lib/fcm.ts                           # admin SDK send wrapper
-    api/registerDevice.ts                # HTTPS callable: store notificationDevices doc
-    api/updatePreferences.ts             # HTTPS callable: store notificationPreferences
-    api/testNotification.ts              # gated dev-only test send (spec §28)
-  package.json
+api/                                 # Vercel serverless functions (Node runtime)
+  notifications/
+    register-device.ts               # POST: store a notificationDevices doc
+    preferences.ts                   # GET/POST: read/write notificationPreferences
+    test.ts                          # gated dev-only test send (spec §28)
+    dispatch.ts                      # called by the GitHub Actions cron, not the client
+  _lib/
+    recommend.ts                     # thin re-export/port of src/domain/recommend.ts
+    mongo.ts                         # connection helper (cached client across invocations)
+    fcm.ts                           # Firebase Admin SDK send wrapper
+    auth.ts                          # verifies the cron shared-secret / device ownership
+vercel.json                          # function config (region, etc.) if defaults don't fit
+package.json                         # api/'s own deps: mongodb, firebase-admin (kept out
+                                     # of the Vite app's package.json — different runtime)
 public/
-  firebase-messaging-sw.js            # or merged into the vite-pwa worker, see §6
+  firebase-messaging-sw.js           # not used — merged into src/sw.ts instead, see §6
 src/
   lib/notifications/
-    firebase.ts                       # initializeApp + getMessaging (client)
-    permission.ts                     # contextual prompt state machine (§5)
-    api.ts                             # client → Cloud Functions HTTPS calls
+    firebase.ts                     # initializeApp + getMessaging (client)
+    permission.ts                   # contextual prompt state machine (§5)
+    api.ts                          # client → Vercel API calls (fetch, not Functions SDK)
   components/NotificationsSettings.tsx
   components/NotificationPermissionPrompt.tsx
 docs/
-  NOTIFICATIONS_PLAN.md               # this file
+  NOTIFICATIONS_PLAN.md              # this file
+.github/workflows/
+  notifications-dispatch.yml         # cron → POST api/notifications/dispatch
 ```
 
 ## 5. MongoDB schema (adapted from spec §4/§7/§8)
@@ -146,14 +173,28 @@ dedicated phase for it with the existing offline behavior (recipe browsing, pant
 cook mode, `/offline.html` fallback) re-verified after the switch, before touching
 notifications at all.
 
-## 7. Firebase services required
+## 7. Services required
 
-- Firebase project (Blaze/pay-as-you-go plan — **2nd-gen Cloud Functions require
-  billing enabled**, even if usage stays inside the free-tier quota)
+**Firebase (Spark/free plan — no billing account, no card):**
 - Cloud Messaging (Web Push, needs a VAPID key pair generated in the console)
-- Cloud Functions 2nd gen (Node runtime)
-- Cloud Scheduler (provisioned automatically by a Functions `onSchedule` trigger)
-- Firebase Analytics (web)
+- Analytics (web)
+- *Not used:* Cloud Functions, Cloud Scheduler, Blaze plan — see §0's 2026-09-12 decision.
+
+**Vercel (Hobby/free plan — no billing account, no card):**
+- One project importing this GitHub repo, deployed alongside (but independent of) the
+  GitHub Pages frontend deploy — its `*.vercel.app` URL is only ever called as an API,
+  never linked to as a page.
+- Serverless functions under `api/` (Node runtime), each with `MONGODB_URI` and the
+  Firebase Admin service-account key set as **Vercel Environment Variables** (Project
+  Settings → Environment Variables), not committed anywhere.
+
+**MongoDB Atlas** — already set up (2026-09-11): M0 free cluster, a database user, and
+network access opened for Vercel's dynamic egress IPs (`0.0.0.0/0`, since Vercel doesn't
+publish a static IP range on the Hobby tier).
+
+**GitHub Actions** — already the deploy mechanism for this repo; a second, independent
+`schedule:`-triggered workflow calls the Vercel dispatcher endpoint. Free for both public
+and (within generous minutes) private repos.
 
 ## 8. Environment variables (`.env.example` additions)
 
@@ -165,76 +206,61 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 VITE_FIREBASE_VAPID_KEY=
+VITE_API_BASE_URL=                   # the Vercel project's URL, e.g. https://zesto-api.vercel.app
 
-# functions/ only (never in the client bundle)
+# api/ only (Vercel Environment Variables — never committed, never in the client bundle)
 MONGODB_URI=
-FIREBASE_SERVICE_ACCOUNT_JSON=       # or use Application Default Credentials on deploy
+FIREBASE_SERVICE_ACCOUNT_JSON=       # Admin SDK credential, for sending FCM messages server-side
 NOTIFICATIONS_TEST_ADMIN_TOKEN=      # gates POST /api/notifications/test (spec §28)
+NOTIFICATIONS_CRON_SECRET=           # shared secret the GitHub Actions cron sends; api/notifications/dispatch rejects requests without it
 ```
 
 The Firebase **client** web config (`VITE_FIREBASE_*`) is not a secret — it's the same
-config shipped to every browser by design; MongoDB and the service-account key are the
-only real secrets here, and they live only in `functions/` (deployed via `firebase
-functions:secrets:set`, never in a client env file).
+config shipped to every browser by design; MongoDB URI, the service-account key, and the
+cron secret are the real secrets here, and they live only in Vercel's environment
+variables (server-side functions) and the GitHub repo's Actions secrets (for the cron
+workflow to read `NOTIFICATIONS_CRON_SECRET`) — never in a client env file, never
+committed.
 
 ---
 
-## 9. Open questions — genuinely blocking, not process for its own sake
+## 9. Open questions
 
-These aren't things I can resolve by inspecting the repo further; they're either
-external account creation only you can do, or product decisions the spec doesn't
-actually settle for this codebase.
+Resolved (see §0's decision log for dates/reasoning):
 
-1. **Do you already have a Firebase project and a MongoDB Atlas cluster?** If not,
-   these need to exist before Phase 1 can produce anything testable — I can't create
-   accounts or provision cloud resources. Once created, I need the client Firebase web
-   config (public, safe to paste) and you'd set `MONGODB_URI` / the service-account key
-   as local/CI secrets yourself (I'll tell you exactly where).
-2. **Keep GitHub Pages, or actually move to Vercel?** The spec assumes Vercel, but
-   nothing about Cloud Functions requires it — they deploy independently via the
-   Firebase CLI regardless of where the static frontend lives. My default: **keep GitHub
-   Pages**, treat "Vercel" in the spec as incidental. Say so if you actually want the
-   move for other reasons.
-3. **Where does pantry/meal-history data live for the decision engine to read?** Today
-   that's `localStorage`-only, by design (§7 above) — a Cloud Function can't see it. To
-   score "you already have eggs + bread" server-side, the client needs to **sync a
-   snapshot** of pantry/history to MongoDB whenever it changes (new `pantrySnapshots` /
-   `mealHistorySnapshots` collections above). That's a real, permanent change to this
-   app's privacy model — right now the Profile page states "Everything is stored on
-   this device only," and this makes that no longer fully true for users who enable
-   notifications. Worth deciding deliberately rather than inheriting it silently from
-   the spec.
-4. **Given (3), how is a user identified with no login?** A generated anonymous device
-   ID (stored in `localStorage`, sent to Functions as `userId`) is the natural fit here
-   — no new login flow, consistent with "explore without an account." Confirming that's
-   the intent before I bake it into the schema.
+1. ~~Firebase project and MongoDB Atlas cluster~~ — MongoDB Atlas M0 created
+   2026-09-11. Firebase project: create next, **Spark plan is enough** now that Cloud
+   Functions are out of the picture (§0) — no Blaze upgrade needed.
+2. ~~Keep GitHub Pages, or move to Vercel?~~ — GitHub Pages for the frontend; Vercel is
+   now also in the picture, but purely as an API host, never linked to as a page.
+3. ~~Where does pantry/history data live for the decision engine to read?~~ — synced to
+   MongoDB, opt-in (only once a user enables notifications). Profile's "Everything is
+   stored on this device only" copy needs an honest amendment once this ships.
+4. **User identity with no login:** a generated anonymous device ID (`crypto.randomUUID()`,
+   stored in `localStorage`, sent to the API as `userId`) — no new login flow, consistent
+   with "explore without an account." Adopting this as the default; flag here if that's
+   wrong.
 
-## 10. Phased plan (adapted from spec §34, gated on §9)
+Nothing left that blocks starting Phase 2 other than the Firebase project existing.
 
-Unchanged in spirit from the spec's 11 phases, but re-ordered so the service-worker
-migration (real risk to existing offline functionality) happens and is verified
-*before* any Firebase code touches it, and so nothing after Phase 2 starts before the
-answers to §9 exist:
+## 10. Phased plan (adapted from spec §34)
 
-1. Service-worker migration to `injectManifest` — re-verify existing offline behavior
-   (recipe browsing, pantry, cook mode, install prompt) — **zero user-visible change**.
-2. Firebase project wiring (client SDK, VAPID, permission UX skeleton) — behind a
-   feature flag, no-op if unconfigured (spec §29: Firebase unavailable → Zesto still
-   works normally).
-3. `functions/` package + MongoDB connection + `notificationPreferences` /
-   `notificationDevices` collections + device registration endpoint.
-4. Preferences UI in Profile ("You") — writes to Functions, not to `localStorage`.
+Re-ordered so the service-worker migration (real risk to existing offline functionality)
+happened and was verified before any push-notification code touched it:
+
+1. ✅ **Done** — Service-worker migration to `injectManifest`, offline behavior
+   re-verified by hand (recipe browsing, pantry, cook mode, install prompt).
+2. Firebase project (Spark plan) + client SDK wiring (VAPID, permission UX skeleton) —
+   behind a feature flag, no-op if unconfigured (spec §29: Firebase unavailable → Zesto
+   still works normally). *(current phase)*
+3. Vercel project + `api/` package + MongoDB connection + `notificationPreferences` /
+   `notificationDevices` collections + device-registration endpoint.
+4. Preferences UI in Profile ("You") — writes to the Vercel API, not to `localStorage`.
 5. Manual test-notification path (spec §28), admin-gated.
-6. Scheduled dispatcher + recommendation-engine integration + fatigue/quiet-hours rules.
+6. `notifications-dispatch.yml` cron + recommendation-engine integration in
+   `api/notifications/dispatch.ts` + fatigue/quiet-hours rules.
 7. `notificationHistory` + analytics events + deep-link click handling.
 8. Weekly-summary data model (architecture only, per spec §21).
 
 Each phase ships independently reviewable/testable, per the spec's own §34 instruction
 not to build all of this in one pass.
-
----
-
-**Nothing beyond this document and the branch itself has been built yet.** Phase 1
-(service-worker migration) can start without waiting on §9's answers — it's pure
-refactor of what already exists. Everything from Phase 2 onward needs at least
-question 1 answered.
