@@ -274,6 +274,15 @@ happened and was verified before any push-notification code touched it:
    - **Not yet wired: actually registering the device anywhere.** `enableNotifications()`
      gets a real FCM token and stores it locally; sending it to a backend is Phase 3,
      since there's no backend yet.
+   - **Found via manual testing, fixed 2026-09-12:** `onBackgroundMessage` alone isn't
+     enough — FCM only calls it when the tab isn't focused. A message sent to a
+     foregrounded tab had nowhere to go. Added `lib/notifications/foreground.ts`
+     (`onMessage`), wired from `App.tsx` behind `useNotifications().enabled` and a
+     dynamic `import()` so the Firebase SDK still never touches the initial bundle for
+     users who haven't opted in. **Interim, not final:** this shows the same system
+     notification the background path does; spec §18 wants an in-app toast instead
+     while the app is already open, but there's no toast primitive in this app to
+     route through yet — real polish item, not a silent shortcut.
 3. Vercel project + `api/` package + MongoDB connection + `notificationPreferences` /
    `notificationDevices` collections + device-registration endpoint. *(current phase)*
 4. Preferences UI in Profile ("You") — writes to the Vercel API, not to `localStorage`.

@@ -5,6 +5,7 @@ import { useApplyTheme } from './app/theme';
 import { ZMark } from './components/ui/ZMark';
 import { MotionProvider, AnimatePresence, m, pageVariants } from './components/ui/motion';
 import { Home } from './routes/Home';
+import { useNotifications } from './state/notifications';
 
 const WhatCanIMake = lazy(() => import('./routes/WhatCanIMake').then((m) => ({ default: m.WhatCanIMake })));
 const Broke = lazy(() => import('./routes/Broke').then((m) => ({ default: m.Broke })));
@@ -41,8 +42,34 @@ function Loading() {
 /** the cooking screen is its own full-screen surface — no page-transition chrome */
 const FULLSCREEN = /^\/cook\//;
 
+/**
+ * Foreground push messages (spec §18) only need wiring up for users who've actually
+ * enabled notifications — dynamically imported so the Firebase Messaging SDK never
+ * touches the initial bundle for everyone else (it's otherwise isolated to the
+ * lazy-loaded Profile chunk, see docs/NOTIFICATIONS_PLAN.md).
+ */
+function useForegroundNotifications() {
+  const enabled = useNotifications((s) => s.enabled);
+  useEffect(() => {
+    if (!enabled) return;
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
+    import('./lib/notifications/foreground').then(({ listenForForegroundMessages }) =>
+      listenForForegroundMessages().then((unsub) => {
+        if (cancelled) unsub?.();
+        else unsubscribe = unsub;
+      }),
+    );
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, [enabled]);
+}
+
 export default function App() {
   useApplyTheme();
+  useForegroundNotifications();
   const location = useLocation();
   useScrollToTop(location.pathname);
   const fullscreen = FULLSCREEN.test(location.pathname);
