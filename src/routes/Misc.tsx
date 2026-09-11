@@ -38,6 +38,10 @@ export function About() {
           nutrition data). Low confidence — never treat them as medical-grade.</p>
         <p><b>Your data</b> — pantry, history, favorites — stays on this device.</p>
       </div>
+      <p className="text-sm text-content-muted leading-relaxed italic text-center px-2">
+        Every recipe here was gathered, tested and written down by one person — Samiran Roy.
+        Zesto is just the engine built around his 99 recipes; he did the real cooking.
+      </p>
       <Link to="/" className="block text-center text-xs font-semibold text-brand pt-2">← Home</Link>
     </div>
   );
