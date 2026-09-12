@@ -123,6 +123,73 @@ export interface Preferences {
   likedTags: string[];
 }
 
+/**
+ * Notification preferences (notification-prompt.md §4/§26). Shared, type-only, between
+ * the client (src/lib/notifications/api.ts) and the Vercel API (api/notifications/*) so
+ * the two can't silently drift apart — see docs/NOTIFICATIONS_PLAN.md §5.
+ */
+export interface NotificationPreferences {
+  enabled: boolean;
+  meals: {
+    breakfast: boolean;
+    brunch: boolean;
+    lunch: boolean;
+    dinner: boolean;
+    supper: boolean;
+  };
+  smart: {
+    pantry: boolean;
+    leftovers: boolean;
+    budget: boolean;
+    weeklySummary: boolean;
+  };
+  maxPerDay: number;
+  quietHours: {
+    enabled: boolean;
+    start: string; // "HH:MM", 24h, in `timezone` below
+    end: string;
+  };
+  timezone: string; // IANA, e.g. "Asia/Kolkata"
+}
+
+export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  enabled: true,
+  meals: { breakfast: true, brunch: false, lunch: true, dinner: true, supper: false },
+  smart: { pantry: true, leftovers: true, budget: true, weeklySummary: true },
+  maxPerDay: 2,
+  quietHours: { enabled: true, start: '23:00', end: '07:00' },
+  timezone: 'Asia/Kolkata',
+};
+
+/**
+ * One row of the in-app notification center (spec §27, Phase 9) — the client-facing
+ * shape of a `notificationHistory` document, returned by `GET /api/notifications/history`
+ * and rendered by `src/components/NotificationHistory.tsx`. Shared, type-only, same
+ * anti-drift rationale as `NotificationPreferences` above. Dates travel as ISO strings
+ * (JSON has no Date type); `title`/`body`/`url` are exactly what was already pushed to
+ * the device — the list re-displays what was sent rather than re-deriving it, so it can
+ * never show something different from what the user actually received, or link
+ * somewhere the notification didn't.
+ */
+export interface NotificationHistoryItem {
+  id: string;
+  type: string;
+  mealType: string | null;
+  recipeNumber: number | null;
+  /** the exact deep-link path this notification was sent with — not every type has a
+   *  recipe to derive one from (e.g. a manual test send links to `/you`), so this is
+   *  stored rather than recomputed. `null` only for a row written before this field
+   *  existed (Phase 9). */
+  url: string | null;
+  title: string;
+  body: string;
+  reason: string;
+  status: 'sent' | 'failed';
+  sentAt: string;
+  openedAt: string | null;
+  readAt: string | null;
+}
+
 /** Everything the decision engine needs to score a recipe. */
 export interface DecisionContext {
   pantry: string[]; // canonical ingredient ids the user has (staples auto-added)

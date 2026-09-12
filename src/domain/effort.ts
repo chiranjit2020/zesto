@@ -1,4 +1,4 @@
-import type { EffortLevel, EquipmentId } from './types';
+import type { EffortLevel, EquipmentId } from './types.js';
 
 /**
  * Effort Score (§16). Cooking time alone is not effort — chopping, multiple vessels

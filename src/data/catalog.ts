@@ -1,7 +1,7 @@
-import raw from './recipes.json';
-import ingredientsRaw from './ingredients.json';
-import { computeEffort } from '../domain/effort';
-import type { EquipmentId, Ingredient, MealType, Recipe } from '../domain/types';
+import raw from './recipes.json' with { type: 'json' };
+import ingredientsRaw from './ingredients.json' with { type: 'json' };
+import { computeEffort } from '../domain/effort.js';
+import type { EquipmentId, Ingredient, MealType, Recipe } from '../domain/types.js';
 
 /**
  * Loads the committed seed (the CONTENT FOUNDATION) and derives fields the engine needs.

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    // Vercel runs api/ under Node's native ESM loader (this repo's package.json has
+    // "type": "module"), which — unlike a bundler — requires explicit .js extensions on
+    // relative imports. "bundler" resolution let that compile locally while it 500'd at
+    // runtime (ERR_MODULE_NOT_FOUND); "nodenext" enforces the same extension rule tsc
+    // itself, so this class of bug is a local typecheck failure, not a prod incident.
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "types": ["node"]
+  },
+  "include": ["**/*.ts"]
+}

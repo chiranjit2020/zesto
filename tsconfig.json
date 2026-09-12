@@ -19,5 +19,10 @@
     "paths": { "@/*": ["src/*"] },
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts"],
+  // src/sw.ts runs in the ServiceWorkerGlobalScope, not the DOM — its globals (self,
+  // clients, __WB_MANIFEST) conflict with the "DOM" lib the rest of the app needs, so
+  // it's excluded from this project's typecheck. Vite/esbuild still transpiles it fine
+  // (no type stripping needed); this only opts it out of `tsc --noEmit`.
+  "exclude": ["src/sw.ts"]
 }

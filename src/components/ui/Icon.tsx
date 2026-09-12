@@ -6,6 +6,7 @@ import {
   Croissant, Refrigerator, Lightbulb, PartyPopper, Repeat2, TrendingUp, Flame as Streak,
   Microwave, CookingPot, Coffee, Sandwich, EggFried, Disc, Soup as SoupPot,
   ArrowRight, ArrowLeft, Star, Shuffle, ListChecks, X, Check, Circle, Plus,
+  Bell, BellOff, BellRing,
   type LucideProps,
 } from 'lucide-react';
 
@@ -71,6 +72,9 @@ const REGISTRY = {
   star: Star,
   shuffle: Shuffle,
   checklist: ListChecks,
+  notify: Bell,
+  'notify-off': BellOff,
+  'notify-on': BellRing,
 } satisfies Record<string, ComponentType<LucideProps>>;
 
 export type IconName = keyof typeof REGISTRY;
