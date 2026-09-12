@@ -4,7 +4,7 @@ import { PageHeader } from '../components/PageHeader';
 import { ConstraintForm, NO_CONSTRAINTS, type Constraints } from '../components/ConstraintForm';
 import { RecipeMeta } from '../components/RecipeMeta';
 import { Button, ButtonLink } from '../components/ui/Button';
-import { ZMark } from '../components/ui/ZMark';
+import { ZImage } from '../components/ui/ZMark';
 import { Icon } from '../components/ui/Icon';
 import { m } from '../components/ui/motion';
 import { RECIPES } from '../data/catalog';
@@ -44,7 +44,7 @@ export function Surprise() {
             transition={rolling ? { duration: 0.6, repeat: Infinity, ease: 'linear' } : { type: 'spring' }}
             className="inline-block"
           >
-            <ZMark size={64} />
+            <ZImage size={64} />
           </m.div>
           <Button size="lg" className="mt-6 group" onClick={roll} disabled={rolling}>
             <Icon name="mode-surprise" size={18} motion="tumble" />
