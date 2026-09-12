@@ -1,15 +1,48 @@
 import { useEffect, useState } from 'react';
 import { SectionHeader } from './ui/primitives';
+import { Segmented } from './ui/Segmented';
 import { Button } from './ui/Button';
 import { Icon } from './ui/Icon';
 import { useNotifications } from '../state/notifications';
+import type { NotificationPreferences } from '../domain/types';
 import {
   disableNotifications,
   enableNotifications,
   getNotificationSupportState,
   type NotificationSupportState,
 } from '../lib/notifications/permission';
-import { registerDevice } from '../lib/notifications/api';
+import { fetchPreferences, registerDevice, savePreferences } from '../lib/notifications/api';
+
+const MEAL_LABELS: [keyof NotificationPreferences['meals'], string][] = [
+  ['breakfast', 'Breakfast'],
+  ['brunch', 'Brunch'],
+  ['lunch', 'Lunch'],
+  ['dinner', 'Dinner'],
+  ['supper', 'Supper'],
+];
+
+const SMART_LABELS: [keyof NotificationPreferences['smart'], string][] = [
+  ['pantry', 'Pantry opportunities'],
+  ['leftovers', 'Leftover rescue'],
+  ['budget', 'Budget ideas'],
+  ['weeklySummary', 'Weekly summary'],
+];
+
+const MAX_PER_DAY_OPTIONS = [1, 2, 3].map((n) => ({ value: n, label: String(n) }));
+
+function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
+  return (
+    <label className="flex items-center justify-between gap-3 text-sm py-1.5">
+      <span>{label}</span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="accent-[rgb(var(--z-brand))] w-4 h-4 shrink-0"
+      />
+    </label>
+  );
+}
 
 /**
  * The contextual notifications prompt (spec §5) — lives in Profile ("You"), never pops
@@ -38,6 +71,48 @@ export function NotificationsSettings() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Once notifications are actually on, reconcile the locally-shown preferences (instant,
+  // possibly stale/default) against the API's copy (the source of truth) — a no-op object
+  // if the API isn't configured yet, so this never blocks or errors visibly (spec §29).
+  useEffect(() => {
+    if (!(store.enabled && support === 'granted')) return;
+    let cancelled = false;
+    fetchPreferences(store.deviceId).then((remote) => {
+      if (!cancelled && remote) store.setPreferences(remote);
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store.enabled, support]);
+
+  // Mongo's $set replaces a nested field's value wholesale (api/notifications/preferences.ts),
+  // so every save below sends the *complete* nested object it belongs to (all five meals,
+  // all four smart flags, or the whole quietHours shape) — never just the one flag that
+  // changed, or the sibling flags would be silently wiped server-side.
+  const toggleMeal = (key: keyof NotificationPreferences['meals']) => {
+    const meals = { ...store.preferences.meals, [key]: !store.preferences.meals[key] };
+    store.updatePreferences({ meals });
+    void savePreferences(store.deviceId, { meals });
+  };
+
+  const toggleSmart = (key: keyof NotificationPreferences['smart']) => {
+    const smart = { ...store.preferences.smart, [key]: !store.preferences.smart[key] };
+    store.updatePreferences({ smart });
+    void savePreferences(store.deviceId, { smart });
+  };
+
+  const setMaxPerDay = (maxPerDay: number) => {
+    store.updatePreferences({ maxPerDay });
+    void savePreferences(store.deviceId, { maxPerDay });
+  };
+
+  const setQuietHours = (patch: Partial<NotificationPreferences['quietHours']>) => {
+    const quietHours = { ...store.preferences.quietHours, ...patch };
+    store.updatePreferences({ quietHours });
+    void savePreferences(store.deviceId, { quietHours });
+  };
 
   const handleEnable = async () => {
     setBusy(true);
@@ -92,17 +167,65 @@ export function NotificationsSettings() {
             </p>
           </div>
         ) : store.enabled && support === 'granted' ? (
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Icon name="notify-on" size={20} className="text-positive shrink-0" />
-              <div>
-                <div className="text-sm font-bold">Smart notifications on</div>
-                <div className="text-2xs text-content-faint mt-0.5">Meal ideas, budget tips, pantry rescues.</div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <Icon name="notify-on" size={20} className="text-positive shrink-0" />
+                <div>
+                  <div className="text-sm font-bold">Smart notifications on</div>
+                  <div className="text-2xs text-content-faint mt-0.5">Meal ideas, budget tips, pantry rescues.</div>
+                </div>
               </div>
+              <Button variant="secondary" size="sm" disabled={busy} onClick={handleDisable}>
+                Turn off
+              </Button>
             </div>
-            <Button variant="secondary" size="sm" disabled={busy} onClick={handleDisable}>
-              Turn off
-            </Button>
+
+            <div className="border-t border-line pt-3">
+              <div className="text-2xs font-bold uppercase tracking-wide text-content-faint mb-1">Meal ideas</div>
+              {MEAL_LABELS.map(([key, label]) => (
+                <ToggleRow key={key} label={label} checked={store.preferences.meals[key]} onChange={() => toggleMeal(key)} />
+              ))}
+            </div>
+
+            <div className="border-t border-line pt-3">
+              <div className="text-2xs font-bold uppercase tracking-wide text-content-faint mb-1">Smart suggestions</div>
+              {SMART_LABELS.map(([key, label]) => (
+                <ToggleRow key={key} label={label} checked={store.preferences.smart[key]} onChange={() => toggleSmart(key)} />
+              ))}
+            </div>
+
+            <div className="border-t border-line pt-3">
+              <div className="text-sm font-semibold mb-2">Maximum per day</div>
+              <Segmented size="sm" value={store.preferences.maxPerDay} onChange={setMaxPerDay} options={MAX_PER_DAY_OPTIONS} />
+            </div>
+
+            <div className="border-t border-line pt-3">
+              <ToggleRow
+                label="Quiet hours"
+                checked={store.preferences.quietHours.enabled}
+                onChange={() => setQuietHours({ enabled: !store.preferences.quietHours.enabled })}
+              />
+              {store.preferences.quietHours.enabled && (
+                <div className="flex items-center gap-2 mt-2 text-sm">
+                  <input
+                    type="time"
+                    value={store.preferences.quietHours.start}
+                    onChange={(e) => setQuietHours({ start: e.target.value })}
+                    className="rounded-xl border border-line bg-surface-sunken px-3 py-2 text-sm focus:border-brand outline-none"
+                    aria-label="Quiet hours start"
+                  />
+                  <span className="text-content-faint">to</span>
+                  <input
+                    type="time"
+                    value={store.preferences.quietHours.end}
+                    onChange={(e) => setQuietHours({ end: e.target.value })}
+                    className="rounded-xl border border-line bg-surface-sunken px-3 py-2 text-sm focus:border-brand outline-none"
+                    aria-label="Quiet hours end"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <div className="flex items-start gap-3">

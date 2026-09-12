@@ -293,14 +293,30 @@ happened and was verified before any push-notification code touched it:
      silently drift apart. `src/lib/notifications/api.ts` + a `registerDevice()` call
      wired into the enable flow — no-ops until `VITE_API_BASE_URL` exists, exactly like
      an unconfigured Firebase project.
-   - **Blocked on:** the Vercel project itself doesn't exist yet — needs the account
-     created and the repo imported (guided, external action), then `MONGODB_URI` set as
-     a Vercel environment variable, then `VITE_API_BASE_URL` set once the deployment URL
-     is known. *(current step)*
+   - **Was blocked on:** the Vercel project itself not existing yet — resolved, see
+     "Unblocked 2026-09-12" below.
    - `api/tsconfig.json` + `npm run typecheck:api` — a separate typecheck pass, since
      `api/` isn't part of the Vite app's module graph and Vercel compiles it independently.
-4. Preferences UI in Profile ("You") — writes to the Vercel API, not to `localStorage`.
-5. Manual test-notification path (spec §28), admin-gated.
+   - **Unblocked 2026-09-12** — Vercel project created, `MONGODB_URI` and
+     `VITE_API_BASE_URL` set (the latter locally in `.env.local`, gitignored; still needs
+     baking into the GitHub Pages build via a repo secret + `deploy.yml`, same as the
+     Firebase vars, before this works in production rather than just local dev).
+4. ✅ **Done** — Preferences UI in Profile ("You"), full spec §4/§26 surface (meal
+   toggles, smart-suggestion toggles, max-per-day, quiet hours) inside the existing
+   `NotificationsSettings` card, shown once notifications are actually on.
+   - `src/state/notifications.ts` — added `preferences` (persisted locally so the panel
+     has something correct to paint before any fetch resolves) + `setPreferences`/
+     `updatePreferences`.
+   - On enable, fetches the API's copy and reconciles over the local default —
+     no-ops silently if the API isn't configured, same posture as `registerDevice`.
+   - **Load-bearing detail:** `api/notifications/preferences.ts`'s POST does a Mongo
+     `$set` per top-level key, which replaces a nested object wholesale rather than
+     deep-merging it. Every save from the UI therefore sends the *complete* `meals` /
+     `smart` / `quietHours` object it belongs to, never a single changed flag — otherwise
+     toggling one meal would silently erase the other four server-side.
+   - Not yet wired: the "Test notification" control (spec §26/§28) — that needs
+     `api/notifications/test.ts` first, which is Phase 5.
+5. Manual test-notification path (spec §28), admin-gated. *(current step)*
 6. `notifications-dispatch.yml` cron + recommendation-engine integration in
    `api/notifications/dispatch.ts` + fatigue/quiet-hours rules.
 7. `notificationHistory` + analytics events + deep-link click handling.
