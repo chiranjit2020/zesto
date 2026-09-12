@@ -27,9 +27,11 @@ export function Layout({ children }: { children: ReactNode }) {
             </NavLink>
             <NavLink
               to="/profile"
-              className="text-xs font-semibold text-content-muted hover:text-content"
+              aria-label="Notifications"
+              className="flex items-center gap-1.5 text-xs font-semibold text-content-muted hover:text-content"
             >
-              {online ? '' : '· offline'}
+              <Icon name="notify" size={20} />
+              {!online && '· offline'}
             </NavLink>
           </div>
         </header>
