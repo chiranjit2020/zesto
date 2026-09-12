@@ -137,6 +137,10 @@ notificationHistory       { userId, deviceId, type, mealType, recipeNumber, titl
                              reason, score, sentAt, openedAt, status }
 pantrySnapshots           { _id: deviceId, items[], updatedAt }   -- ✅ Phase 6, api/sync/pantry.ts
 mealHistorySnapshots      { _id: deviceId, entries[], updatedAt } -- ✅ Phase 6, api/sync/meal-history.ts
+prefsSnapshots            { _id: deviceId, diet, equipmentOwned[], defaultBudgetInr,
+                             defaultTimeMinutes, defaultMaxEffort, servings, likedTags[],
+                             updatedAt } -- ✅ Phase 10, api/sync/prefs.ts (closes the
+                             diet/equipment/budget-time gap flagged since Phase 6)
 ```
 
 Indexes: `notificationDevices.userId`, `notificationHistory.{userId, sentAt}` (recent-
@@ -361,11 +365,10 @@ happened and was verified before any push-notification code touched it:
      `src/domain/pantry.ts` / `src/domain/kitchenHistory.ts` — pure, no zustand — since
      the originals call `persist(...)`, which touches `localStorage` at module load and
      would crash under Node the moment `api/` imported them.
-   - **Not yet closed:** `usePrefs` (diet, equipment, budget/time defaults) still isn't
+   - ~~Not yet closed: `usePrefs` (diet, equipment, budget/time defaults) still isn't
      synced — only pantry + history were ever scoped for sync (§9 Q3). `dispatch.ts`
      hardcodes `diet: 'any'`, meaning a vegetarian user could in principle get an
-     egg-dish notification. Real gap, not silently glossed over; closing it means
-     extending the sync the same way pantry/history were.
+     egg-dish notification.~~ **Closed in Phase 10 below.**
    - **`api/notifications/dispatch.ts`** — cron-only (`x-admin-token` against
      `NOTIFICATIONS_CRON_SECRET`, same `api/_lib/auth.ts` as Phase 5's test endpoint).
      Per enabled device: resolve preferences (deep-merged over defaults so a doc missing
@@ -549,13 +552,41 @@ happened and was verified before any push-notification code touched it:
        → mark-as-read via open (deep link to `/you`) → dismiss, persisting across a
        refresh.
 
+10. ✅ **Done** — closed the `usePrefs`/diet-sync gap flagged since Phase 6.
+    - `src/domain/types.ts` gained `DEFAULT_PREFERENCES` — `state/prefs.ts`'s store
+      defaults now spread it instead of duplicating the literal, same anti-drift pattern
+      as `DEFAULT_NOTIFICATION_PREFERENCES`.
+    - **New:** `api/sync/prefs.ts` — same opt-in, replace-wholesale posture as
+      `api/sync/pantry.ts`/`meal-history.ts` (§9 Q3). Syncs `diet`, `equipmentOwned`,
+      `defaultBudgetInr`, `defaultTimeMinutes`, `defaultMaxEffort`, `servings`,
+      `likedTags` into a new `prefsSnapshots` collection. Deliberately *not* synced:
+      `theme` — a display setting with no bearing on the recommendation engine, no
+      reason for it to leave the browser at all.
+    - `src/lib/notifications/dataSync.ts` — a third debounced subscription (`usePrefs`,
+      alongside `usePantry`/`useKitchen`), same immediate-push-on-enable behavior so a
+      device that already has a diet set doesn't wait for the next edit to be honored.
+    - `api/notifications/dispatch.ts` — loads `prefsSnapshots` alongside the pantry/
+      history snapshots (one more `Promise.all` entry) and merges it over
+      `DEFAULT_PREFERENCES`. `DecisionContext.diet`, `.equipmentAvailable`, `.budgetInr`,
+      `.timeMinutes`, `.maxEffort`, and `.likedTags` are now the device's real synced
+      values instead of hardcoded `'any'`/`null`/`[]` — the fix reaches slightly further
+      than "diet" alone, since equipment and budget/time were silently ignored too,
+      exactly as this gap's own original phrasing said ("diet, equipment, budget/time
+      defaults").
+    - Profile's "Data" section copy updated to say preferences sync too, alongside
+      pantry/cooking history (§3's promised amendment, extended).
+    - Not addressed here: a device that enabled notifications *before* this shipped
+      won't have a `prefsSnapshots` doc until it next writes to `usePrefs` locally
+      (triggering the subscription) — falls back to `DEFAULT_PREFERENCES` until then,
+      same as any other missing-snapshot case this file already handles.
+
 **Where this leaves spec §34's full 11-phase list:** Phases 1–8 above map to spec's
 Phases 1–8 and are done, to the extent and with the caveats recorded above. Spec's
 Phase 9 (Firebase Analytics) landed early, inside Phase 7; spec's Phase 10 (notification
 history UI, §27) is this doc's Phase 9 above. Not built: spec's Phase 11 (optional
 AI-generated notification copy, §22 — explicitly optional, and the deterministic engine
-remains authoritative either way). Also still open: the `usePrefs`/diet-sync gap and the
-fatigue-reduction gap, both called out where they were found above.
+remains authoritative either way). Also still open: the fatigue-reduction gap, called
+out where it was found above.
 
 **2026-09-12 real-deploy status:** the "nothing proven against a real Vercel run yet"
 caveat that shadowed every phase through Phase 8 is now fully closed — see Phase 9's own

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Diet, EffortLevel, EquipmentId, Preferences } from '../domain/types';
+import { DEFAULT_PREFERENCES, type Diet, type EffortLevel, type EquipmentId, type Preferences } from '../domain/types';
 import type { IconName } from '../components/ui/Icon';
 
 interface PrefsStore extends Preferences {
@@ -12,14 +12,7 @@ interface PrefsStore extends Preferences {
 }
 
 const DEFAULTS: Preferences & { hasOnboarded: boolean } = {
-  diet: 'any',
-  equipmentOwned: ['one-pan'],
-  defaultBudgetInr: null,
-  defaultTimeMinutes: null,
-  defaultMaxEffort: null,
-  servings: 1,
-  theme: 'system',
-  likedTags: [],
+  ...DEFAULT_PREFERENCES,
   hasOnboarded: false,
 };
 

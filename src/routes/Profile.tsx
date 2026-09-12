@@ -178,7 +178,7 @@ export function Profile() {
           title="Data"
           sub={
             notificationsEnabled
-              ? 'Mostly stored on this device — pantry & cooking history also sync to our server so smart notifications work'
+              ? 'Mostly stored on this device — pantry, cooking history & preferences also sync to our server so smart notifications work'
               : 'Everything is stored on this device only'
           }
         />
