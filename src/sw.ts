@@ -97,7 +97,12 @@ if (Object.values(firebaseConfig).every(Boolean)) {
           .showNotification(title, {
             body: data.body,
             icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
-            badge: `${import.meta.env.BASE_URL}icons/icon-192.png`,
+            // Android strips color from `badge` and re-tints it from the alpha channel
+            // alone (its status-bar small-icon guideline: opaque white on transparent) —
+            // reusing the full-color app icon here renders as a washed-out blob, not the
+            // logo. badge-96.png is a real white silhouette of the same mark, generated
+            // by scripts/make_brand_assets.py alongside the other icon variants.
+            badge: `${import.meta.env.BASE_URL}icons/badge-96.png`,
             tag: data.type ?? 'zesto-notification',
             data: { url: data.url ?? import.meta.env.BASE_URL, notifId: data.notifId ?? '' },
           })
