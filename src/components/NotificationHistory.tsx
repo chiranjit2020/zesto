@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { SectionHeader } from './ui/primitives';
 import { Icon } from './ui/Icon';
 import { useNotifications } from '../state/notifications';
-import { RECIPE_BY_NUMBER } from '../data/catalog';
 import { relativeDay } from '../lib/format';
 import { notificationClickUrl } from '../lib/notifications/payload';
 import { dismissNotification, fetchNotificationHistory, isApiConfigured, markNotificationRead } from '../lib/notifications/api';
@@ -62,7 +61,6 @@ export function NotificationHistory() {
       <SectionHeader title="Notification history" />
       <div className="z-card divide-y divide-line">
         {items.map((item) => {
-          const recipe = item.recipeNumber != null ? RECIPE_BY_NUMBER.get(item.recipeNumber) : undefined;
           const unread = !item.readAt;
           const text = (
             <div className="min-w-0">
@@ -79,17 +77,17 @@ export function NotificationHistory() {
           );
           return (
             <div key={item.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
-              {recipe ? (
+              {item.url ? (
                 <Link
-                  to={notificationClickUrl({ notifId: item.id }, `/r/${recipe.slug}`)}
+                  to={notificationClickUrl({ notifId: item.id }, item.url)}
                   className="flex-1 min-w-0 hover:text-brand"
                   onClick={() => markRead(item.id)}
                 >
                   {text}
                 </Link>
               ) : (
-                // No recipe to open (e.g. a future non-recipe notification type) —
-                // still lets spec §27's "mark as read" happen on tap.
+                // Only a pre-Phase-9 row (no stored `url`) lands here — still lets
+                // spec §27's "mark as read" happen on tap.
                 <button className="flex-1 min-w-0 text-left" onClick={() => markRead(item.id)}>
                   {text}
                 </button>

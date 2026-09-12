@@ -14,6 +14,11 @@ export interface NotificationHistoryRecord {
   type: string;
   mealType?: string | null;
   recipeNumber?: number | null;
+  /** the exact deep-link path sent in the push payload's `data.url` (spec §17) — stored
+   *  verbatim (Phase 9, spec §27) so the notification center can link back to it without
+   *  re-deriving a URL from `recipeNumber` alone, which breaks for non-recipe types like
+   *  `api/notifications/test.ts`'s test send (links to `/you`, no recipe at all). */
+  url: string;
   title: string;
   body: string;
   reason: string;

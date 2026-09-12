@@ -166,15 +166,21 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
  * shape of a `notificationHistory` document, returned by `GET /api/notifications/history`
  * and rendered by `src/components/NotificationHistory.tsx`. Shared, type-only, same
  * anti-drift rationale as `NotificationPreferences` above. Dates travel as ISO strings
- * (JSON has no Date type); `title`/`body` are the exact text already pushed to the
- * device — the list re-displays what was sent rather than re-deriving it, so it can
- * never show something different from what the user actually received.
+ * (JSON has no Date type); `title`/`body`/`url` are exactly what was already pushed to
+ * the device — the list re-displays what was sent rather than re-deriving it, so it can
+ * never show something different from what the user actually received, or link
+ * somewhere the notification didn't.
  */
 export interface NotificationHistoryItem {
   id: string;
   type: string;
   mealType: string | null;
   recipeNumber: number | null;
+  /** the exact deep-link path this notification was sent with — not every type has a
+   *  recipe to derive one from (e.g. a manual test send links to `/you`), so this is
+   *  stored rather than recomputed. `null` only for a row written before this field
+   *  existed (Phase 9). */
+  url: string | null;
   title: string;
   body: string;
   reason: string;

@@ -14,6 +14,9 @@ interface HistoryDoc {
   type: string;
   mealType?: string | null;
   recipeNumber?: number | null;
+  // Optional here even though api/_lib/history.ts's `NotificationHistoryRecord` now
+  // always sets it — a row written before Phase 9 predates the field entirely.
+  url?: string | null;
   title: string;
   body: string;
   reason: string;
@@ -62,6 +65,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         type: r.type,
         mealType: r.mealType ?? null,
         recipeNumber: r.recipeNumber ?? null,
+        url: r.url ?? null,
         title: r.title,
         body: r.body,
         reason: r.reason,
