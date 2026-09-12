@@ -8,6 +8,10 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
  */
 const ALLOWED_ORIGINS = [
   'https://chiranjitkarmakar.com',
+  // the live site actually resolves at the `www` subdomain (chiranjitkarmakar.com
+  // 301s to it) — found 2026-09-12 when the bare-domain-only allowlist here silently
+  // dropped Access-Control-Allow-Origin for every real production request.
+  'https://www.chiranjitkarmakar.com',
   /^http:\/\/localhost:\d+$/,
   /^http:\/\/127\.0\.0\.1:\d+$/,
 ];
