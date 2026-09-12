@@ -104,7 +104,22 @@ def save_small(img_rgba, target_w, path):
 # transparent ribbon-Z mark; the "Zesto" wordmark is rendered as text in-app so we
 # don't ship a heavy full-lockup PNG
 _mark_hi = master.crop(MARK_BBOX).resize((MARK.width * 3, MARK.height * 3), Image.LANCZOS)
-save_small(unmatte(_mark_hi, BG), 128, ROOT / "public" / "zesto-mark.png")
+_mark_rgba = unmatte(_mark_hi, BG)
+save_small(_mark_rgba, 128, ROOT / "public" / "zesto-mark.png")
+
+# Android push-notification "badge" (the small status-bar icon) — Android strips color
+# from whatever's given and re-tints it from the alpha channel alone, so a full-color
+# icon here renders as a washed-out blob, not the logo. Reuses the same real alpha
+# silhouette `unmatte` already extracted above, just recolored solid white — exactly
+# Android's own small-icon guideline (opaque white shape, transparent background).
+_badge = Image.new("RGBA", _mark_rgba.size, (0, 0, 0, 0))
+_badge.putalpha(_mark_rgba.getchannel("A"))
+_bpx = _badge.load()
+for _y in range(_badge.height):
+    for _x in range(_badge.width):
+        _a = _bpx[_x, _y][3]
+        _bpx[_x, _y] = (255, 255, 255, _a)
+save_small(_badge, 96, ICONS / "badge-96.png")
 
 # ---------- favicons ----------
 fav96 = icon_from_mark(96, 0.82)

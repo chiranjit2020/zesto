@@ -32,7 +32,9 @@ export async function listenForForegroundMessages(): Promise<Unsubscribe | null>
       await registration.showNotification(title, {
         body,
         icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
-        badge: `${import.meta.env.BASE_URL}icons/icon-192.png`,
+        // See src/sw.ts's comment on this — Android needs a white-silhouette badge,
+        // not the full-color app icon, or the status-bar icon renders as a blob.
+        badge: `${import.meta.env.BASE_URL}icons/badge-96.png`,
         tag: data.type ?? 'zesto-notification',
         data: { url: data.url ?? import.meta.env.BASE_URL, notifId: data.notifId ?? '' },
       });
