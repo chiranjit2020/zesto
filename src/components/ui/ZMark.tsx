@@ -89,11 +89,11 @@ export function ZLockup({ className = '', size = 56 }: { className?: string; siz
 }
 
 /**
- * The official mark alone, faded, as a background watermark on a recipe's gradient art
- * (Discover cards, recipe detail hero — §3's "recipe cards" recurrence). Real artwork,
- * not the animated stand-in `ZMark` — that one stays reserved for loading/progress states.
+ * The official mark alone, at full visibility by default — for use as a primary icon
+ * (e.g. the spinning centerpiece on Surprise.tsx's dice-roll), not a faded background
+ * watermark (see `ZWatermark` below, which is this with `opacity` turned down).
  */
-export function ZWatermark({ size = 44, opacity = 0.45, className = '' }: { size?: number; opacity?: number; className?: string }) {
+export function ZImage({ size = 44, opacity = 1, className = '' }: { size?: number; opacity?: number; className?: string }) {
   return (
     <img
       src={MARK_SRC}
@@ -105,4 +105,15 @@ export function ZWatermark({ size = 44, opacity = 0.45, className = '' }: { size
       draggable={false}
     />
   );
+}
+
+/**
+ * The official mark, faded, as a background watermark on a recipe's gradient art
+ * (Discover cards, recipe detail hero — §3's "recipe cards" recurrence). Real artwork,
+ * not the animated stand-in `ZMark` — that one stays reserved for loading/progress states
+ * that genuinely need an SVG (cook-mode's progressive stroke reveal — a plain rotation,
+ * like Surprise.tsx's dice-roll, works identically on `ZImage`).
+ */
+export function ZWatermark({ size = 44, opacity = 0.45, className = '' }: { size?: number; opacity?: number; className?: string }) {
+  return <ZImage size={size} opacity={opacity} className={className} />;
 }
