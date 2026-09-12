@@ -55,3 +55,30 @@ export async function savePreferences(deviceId: string, patch: Partial<Notificat
     return false;
   }
 }
+
+/**
+ * Manual test send (spec §28, Phase 5) against the admin-gated api/notifications/test.ts.
+ * `adminToken` is never read from an env var here — a VITE_-prefixed var would ship it to
+ * every visitor's browser bundle, exactly what spec §23 ("never send privileged
+ * notification requests directly from the browser") warns against. Its only caller,
+ * NotificationsSettings.tsx, asks for it interactively via `window.prompt` each time and
+ * never persists it, and renders the button itself only behind `import.meta.env.DEV` —
+ * so the whole call site is dead code, stripped from every production build.
+ */
+export async function sendTestNotification(
+  deviceId: string,
+  adminToken: string,
+): Promise<{ ok: boolean; error?: string }> {
+  if (!isApiConfigured) return { ok: false, error: 'api-not-configured' };
+  try {
+    const res = await fetch(`${BASE_URL}/api/notifications/test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': adminToken },
+      body: JSON.stringify({ deviceId }),
+    });
+    const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+    return { ok: res.ok && data.ok === true, error: data.error };
+  } catch {
+    return { ok: false, error: 'network-error' };
+  }
+}

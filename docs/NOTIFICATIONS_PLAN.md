@@ -316,7 +316,35 @@ happened and was verified before any push-notification code touched it:
      toggling one meal would silently erase the other four server-side.
    - Not yet wired: the "Test notification" control (spec §26/§28) — that needs
      `api/notifications/test.ts` first, which is Phase 5.
-5. Manual test-notification path (spec §28), admin-gated. *(current step)*
+5. ✅ **Done** — Manual test-notification path (spec §28), admin-gated.
+   - `api/notifications/test.ts` — `POST { deviceId }`, gated by a `x-admin-token` header
+     checked against `NOTIFICATIONS_TEST_ADMIN_TOKEN` (`api/_lib/auth.ts`, timing-safe
+     compare, fails closed if the env var isn't set). Looks the device up in
+     `notificationDevices`, sends via `api/_lib/fcm.ts` (Firebase Admin SDK, cached app
+     across warm invocations like `mongo.ts`), logs to `notificationHistory`
+     (`api/_lib/history.ts`) either way. An unregistered/invalid-token error from FCM
+     marks the device `enabled: false` (spec §29's device-lifecycle rule), not just a
+     logged failure.
+   - Deliberately exercises the real pipeline (Mongo lookup → Admin SDK → history log),
+     not just "does FCM work" — the Firebase console's own test-send already answers
+     that against the token this app already logs on enable.
+   - **Client side, deliberately not a production affordance:** `sendTestNotification`
+     (`src/lib/notifications/api.ts`) takes the admin token as a parameter rather than
+     reading it from any env var — a `VITE_`-prefixed one would ship the secret to every
+     visitor's bundle, exactly what spec §23 warns against ("never send privileged
+     notification requests directly from the browser"). Its only caller is a
+     `import.meta.env.DEV`-gated "Send test notification" button in
+     `NotificationsSettings.tsx` that asks for the token via `window.prompt` each time
+     and never stores it — verified after `npm run build` that neither the button nor
+     the token-bearing call path (`grep` for the button's string and for
+     `x-admin-token`) appears anywhere in `dist/`; Rollup tree-shakes the whole branch
+     out of production.
+   - `package.json` — new dependency: `firebase-admin` (Admin SDK, server-side only,
+     `api/`'s runtime — never touches the Vite app's bundle).
+   - **To actually test this once deployed:** set `NOTIFICATIONS_TEST_ADMIN_TOKEN` as a
+     Vercel environment variable (any long random string), run `npm run dev` locally,
+     enable notifications in Profile, click "Send test notification", paste that same
+     token when prompted.
 6. `notifications-dispatch.yml` cron + recommendation-engine integration in
    `api/notifications/dispatch.ts` + fatigue/quiet-hours rules.
 7. `notificationHistory` + analytics events + deep-link click handling.

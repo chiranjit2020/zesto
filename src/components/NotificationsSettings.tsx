@@ -11,7 +11,7 @@ import {
   getNotificationSupportState,
   type NotificationSupportState,
 } from '../lib/notifications/permission';
-import { fetchPreferences, registerDevice, savePreferences } from '../lib/notifications/api';
+import { fetchPreferences, registerDevice, savePreferences, sendTestNotification } from '../lib/notifications/api';
 
 const MEAL_LABELS: [keyof NotificationPreferences['meals'], string][] = [
   ['breakfast', 'Breakfast'],
@@ -55,6 +55,7 @@ export function NotificationsSettings() {
   const [support, setSupport] = useState<NotificationSupportState | 'checking'>('checking');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [testStatus, setTestStatus] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -139,6 +140,16 @@ export function NotificationsSettings() {
           ? "This browser doesn't support push notifications."
           : "Couldn't turn that on — try again in a moment.",
     );
+  };
+
+  // Dev-only (see the button below and src/lib/notifications/api.ts's comment on
+  // sendTestNotification): asks for the admin token interactively, never stores it.
+  const handleTest = async () => {
+    const token = window.prompt('NOTIFICATIONS_TEST_ADMIN_TOKEN (not stored anywhere):');
+    if (!token) return;
+    setTestStatus('Sending…');
+    const result = await sendTestNotification(store.deviceId, token);
+    setTestStatus(result.ok ? 'Sent — check for the notification.' : `Failed: ${result.error ?? 'unknown error'}`);
   };
 
   const handleDisable = async () => {
@@ -226,6 +237,18 @@ export function NotificationsSettings() {
                 </div>
               )}
             </div>
+
+            {import.meta.env.DEV && (
+              <div className="border-t border-line pt-3">
+                <Button variant="secondary" size="sm" onClick={handleTest}>
+                  Send test notification
+                </Button>
+                <p className="text-2xs text-content-faint mt-2">
+                  Dev only — asks for the admin token each time, never stores it.
+                </p>
+                {testStatus && <p className="text-2xs text-content-faint mt-1">{testStatus}</p>}
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex items-start gap-3">
