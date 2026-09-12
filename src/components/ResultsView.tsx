@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import type { DecisionContext } from '../domain/types';
 import { RECIPES } from '../data/catalog';
 import { rankRecipes, suggestRelaxations } from '../domain/recommend';
@@ -6,6 +7,7 @@ import { MatchCard } from './RecipeCard';
 import { EmptyState } from './ui/primitives';
 import { Button } from './ui/Button';
 import type { IconName } from './ui/Icon';
+import { track } from '../lib/track';
 
 export function ResultsView({
   ctx,
@@ -23,6 +25,18 @@ export function ResultsView({
     () => (results.length === 0 ? suggestRelaxations(RECIPES, ctx) : []),
     [results.length, ctx],
   );
+
+  // One shared component behind every situational mode (Broke/Tired/Midnight/…),
+  // WhatCanIMake, and Discover — the mode name comes from the route rather than a prop
+  // threaded through each of those callers (docs/ANALYTICS_FEEDBACK_PLAN.md §4).
+  const location = useLocation();
+  useEffect(() => {
+    track('recommendation_generated', {
+      mode: location.pathname.split('/').filter(Boolean)[0] ?? 'home',
+      number_of_results: results.length,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results.length, location.pathname]);
 
   if (results.length === 0) {
     return (

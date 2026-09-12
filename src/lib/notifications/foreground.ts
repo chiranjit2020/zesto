@@ -1,5 +1,5 @@
 import { onMessage, type MessagePayload, type Unsubscribe } from 'firebase/messaging';
-import { getMessagingIfSupported } from './firebase';
+import { getMessagingIfSupported } from '../firebase';
 
 /**
  * Foreground message handling (spec §18) — the counterpart to `onBackgroundMessage` in

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { RECIPE_BY_SLUG, INGREDIENT_BY_ID } from '../data/catalog';
 import { usePantry } from '../state/pantry';
@@ -11,6 +11,7 @@ import { ButtonLink, Button } from '../components/ui/Button';
 import { ZWatermark } from '../components/ui/ZMark';
 import { Icon } from '../components/ui/Icon';
 import { shareRecipe } from '../lib/shareCard';
+import { track } from '../lib/track';
 
 export function RecipeDetail() {
   const { slug } = useParams();
@@ -39,6 +40,10 @@ export function RecipeDetail() {
       optional,
     };
   }, [recipe, pantryHas]);
+
+  useEffect(() => {
+    if (recipe) track('recipe_viewed', { recipe_number: recipe.number });
+  }, [recipe]);
 
   if (!recipe) return <Navigate to="/discover" replace />;
 

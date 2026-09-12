@@ -6,6 +6,7 @@ import { ZMark } from './components/ui/ZMark';
 import { MotionProvider, AnimatePresence, m, pageVariants } from './components/ui/motion';
 import { Home } from './routes/Home';
 import { useNotifications } from './state/notifications';
+import { track } from './lib/track';
 
 const WhatCanIMake = lazy(() => import('./routes/WhatCanIMake').then((m) => ({ default: m.WhatCanIMake })));
 const Broke = lazy(() => import('./routes/Broke').then((m) => ({ default: m.Broke })));
@@ -27,6 +28,28 @@ function useScrollToTop(key: string) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [key]);
+}
+
+/**
+ * Core engagement analytics (docs/ANALYTICS_FEEDBACK_PLAN.md §2/§4) — unconditional,
+ * unlike every notification-related analytics call below: this is what lets Firebase
+ * Analytics actually see DAU/WAU/MAU across real usage, not just the subset of users
+ * who've opted into notifications. `track()` (lib/track.ts) still dynamic-imports the
+ * Firebase SDK on first call and fails silently if unsupported/offline/unconfigured —
+ * this never blocks rendering or breaks the app if Analytics can't load.
+ */
+function useCoreAnalytics() {
+  const location = useLocation();
+
+  useEffect(() => {
+    track('app_open');
+    track('session_started');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    track('page_viewed', { page: location.pathname });
+  }, [location.pathname]);
 }
 
 function Loading() {
@@ -114,16 +137,15 @@ function useNotificationOpenTracking() {
     navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
 
     void import('./lib/notifications/api').then(({ markNotificationOpened }) => markNotificationOpened(deviceId, notifId));
-    void import('./lib/notifications/analytics').then(({ track }) => {
-      track('notification_opened', { notif_id: notifId });
-      if (location.pathname.startsWith('/r/')) track('notification_recipe_viewed', { path: location.pathname });
-    });
+    track('notification_opened', { notif_id: notifId });
+    if (location.pathname.startsWith('/r/')) track('notification_recipe_viewed', { path: location.pathname });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname, location.search, deviceId]);
 }
 
 export default function App() {
   useApplyTheme();
+  useCoreAnalytics();
   useForegroundNotifications();
   useDataSync();
   useNotificationOpenTracking();

@@ -5,6 +5,7 @@ import { Icon } from './ui/Icon';
 import { INGREDIENT_BY_ID } from '../data/catalog';
 import { ZWatermark } from './ui/ZMark';
 import { MotionLink, softSpring } from './ui/motion';
+import { track } from '../lib/track';
 
 const cardReveal = {
   initial: { opacity: 0, y: 14 },
@@ -55,6 +56,7 @@ export function MatchCard({ scored, rank }: { scored: ScoredRecipe; rank?: numbe
       transition={softSpring}
       to={`/r/${recipe.slug}`}
       className="z-card p-4 block"
+      onClick={() => track('recommendation_clicked', { recipe_number: recipe.number, rank })}
     >
       <div className="flex items-start justify-between gap-3">
         <div>

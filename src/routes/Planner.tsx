@@ -9,6 +9,7 @@ import { RangeControl, Segmented } from '../components/ui/Segmented';
 import { Button } from '../components/ui/Button';
 import { MetricTile } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
+import { track } from '../lib/track';
 
 export function Planner() {
   const prefs = usePrefs();
@@ -19,16 +20,16 @@ export function Planner() {
   const [plan, setPlan] = useState<ReturnType<typeof generateWeekPlan> | null>(null);
 
   const build = () => {
-    setPlan(
-      generateWeekPlan(RECIPES, {
-        weeklyBudgetInr: budget,
-        people,
-        diet: prefs.diet,
-        maxEffort: effort,
-        slots: ['breakfast', 'lunch', 'dinner'],
-        pantry,
-      }),
-    );
+    const generated = generateWeekPlan(RECIPES, {
+      weeklyBudgetInr: budget,
+      people,
+      diet: prefs.diet,
+      maxEffort: effort,
+      slots: ['breakfast', 'lunch', 'dinner'],
+      pantry,
+    });
+    setPlan(generated);
+    track('planner_created', { number_of_meals: generated.meals.length, budget });
   };
 
   return (

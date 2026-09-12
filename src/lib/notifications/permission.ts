@@ -1,5 +1,5 @@
 import { deleteToken, getToken } from 'firebase/messaging';
-import { getMessagingIfSupported, isFirebaseConfigured, VAPID_KEY } from './firebase';
+import { getMessagingIfSupported, isFirebaseConfigured, VAPID_KEY } from '../firebase';
 
 export type NotificationSupportState =
   | 'unsupported' // no Notification/Push API, insecure context, or Firebase not configured

@@ -6,7 +6,7 @@ import {
   Croissant, Refrigerator, Lightbulb, PartyPopper, Repeat2, TrendingUp, Flame as Streak,
   Microwave, CookingPot, Coffee, Sandwich, EggFried, Disc, Soup as SoupPot,
   ArrowRight, ArrowLeft, Star, Shuffle, ListChecks, X, Check, Circle, Plus,
-  Bell, BellOff, BellRing,
+  Bell, BellOff, BellRing, Bug, Heart, ThumbsUp, ThumbsDown,
   type LucideProps,
 } from 'lucide-react';
 
@@ -75,6 +75,14 @@ const REGISTRY = {
   notify: Bell,
   'notify-off': BellOff,
   'notify-on': BellRing,
+  // feedback (docs/ANALYTICS_FEEDBACK_PLAN.md) — Lucide icons in place of the spec's
+  // literal emoji mock, matching this app's own "replace emoji with one consistent
+  // icon set" convention (see this file's top comment).
+  bug: Bug,
+  idea: Lightbulb,
+  heart: Heart,
+  'thumb-up': ThumbsUp,
+  'thumb-down': ThumbsDown,
 } satisfies Record<string, ComponentType<LucideProps>>;
 
 export type IconName = keyof typeof REGISTRY;

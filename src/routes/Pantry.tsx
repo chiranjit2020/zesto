@@ -11,6 +11,7 @@ import { EmptyState, Badge, SectionHeader } from '../components/ui/primitives';
 import { Icon } from '../components/ui/Icon';
 import { RecipeCard } from '../components/RecipeCard';
 import { relativeDay } from '../lib/format';
+import { track } from '../lib/track';
 
 export function Pantry() {
   const { items, add, remove } = usePantry();
@@ -102,7 +103,10 @@ export function Pantry() {
                           )}
                         </div>
                         <button
-                          onClick={() => remove(it.id)}
+                          onClick={() => {
+                            remove(it.id);
+                            track('pantry_updated', { action: 'remove', ingredient_count: usePantry.getState().items.length });
+                          }}
                           className="text-2xs font-bold text-content-faint hover:text-critical"
                           aria-label={`Remove ${ing?.name}`}
                         >
@@ -142,7 +146,15 @@ export function Pantry() {
           <IngredientPicker
             selected={selected}
             quickPicks={COMMON_INGREDIENTS}
-            onToggle={(id) => (selected.has(id) ? remove(items.find((i) => i.ingredientId === id)!.id) : add(id))}
+            onToggle={(id) => {
+              const wasSelected = selected.has(id);
+              if (wasSelected) remove(items.find((i) => i.ingredientId === id)!.id);
+              else add(id);
+              track('pantry_updated', {
+                action: wasSelected ? 'remove' : 'add',
+                ingredient_count: usePantry.getState().items.length,
+              });
+            }}
           />
           <p className="text-2xs text-content-faint mt-3">
             <Badge tone="neutral">note</Badge> Salt, oil and basic spices are assumed — you don't need to add them.
