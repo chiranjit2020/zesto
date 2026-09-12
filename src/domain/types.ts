@@ -161,6 +161,29 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   timezone: 'Asia/Kolkata',
 };
 
+/**
+ * One row of the in-app notification center (spec §27, Phase 9) — the client-facing
+ * shape of a `notificationHistory` document, returned by `GET /api/notifications/history`
+ * and rendered by `src/components/NotificationHistory.tsx`. Shared, type-only, same
+ * anti-drift rationale as `NotificationPreferences` above. Dates travel as ISO strings
+ * (JSON has no Date type); `title`/`body` are the exact text already pushed to the
+ * device — the list re-displays what was sent rather than re-deriving it, so it can
+ * never show something different from what the user actually received.
+ */
+export interface NotificationHistoryItem {
+  id: string;
+  type: string;
+  mealType: string | null;
+  recipeNumber: number | null;
+  title: string;
+  body: string;
+  reason: string;
+  status: 'sent' | 'failed';
+  sentAt: string;
+  openedAt: string | null;
+  readAt: string | null;
+}
+
 /** Everything the decision engine needs to score a recipe. */
 export interface DecisionContext {
   pantry: string[]; // canonical ingredient ids the user has (staples auto-added)

@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
 import { RecipeCard } from '../components/RecipeCard';
 import { NotificationsSettings } from '../components/NotificationsSettings';
+import { NotificationHistory } from '../components/NotificationHistory';
 import { useNotifications } from '../state/notifications';
 import { rupee2, relativeDay } from '../lib/format';
 import { CHALLENGES, challengeProgress } from '../domain/challenges';
@@ -126,6 +127,8 @@ export function Profile() {
       )}
 
       <NotificationsSettings />
+
+      <NotificationHistory />
 
       {/* ---- preferences (§28) ---- */}
       <section>

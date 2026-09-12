@@ -47,6 +47,14 @@ export async function recordNotification(id: ObjectId, record: NotificationHisto
       ...record,
       sentAt: new Date(),
       openedAt: null,
+      // Phase 9 (spec §27's notification center): `readAt`/`dismissedAt` distinguish
+      // "glanced at in the in-app list" from `openedAt`'s "clicked through to the
+      // recipe" (spec §20's funnel already owns that one). Explicit `null` here even
+      // though api/notifications/history.ts's `dismissedAt: null` filter also matches
+      // rows that predate this field entirely — same self-documenting-schema reasoning
+      // as `openedAt` above.
+      readAt: null,
+      dismissedAt: null,
     });
   } catch (err) {
     console.error('[Zesto API] failed to write notificationHistory:', err);

@@ -1,4 +1,4 @@
-import type { NotificationPreferences } from '../../domain/types';
+import type { NotificationHistoryItem, NotificationPreferences } from '../../domain/types';
 
 /**
  * Talks to the Vercel API (api/notifications/*), never Firebase Functions — see
@@ -83,6 +83,53 @@ export async function markNotificationOpened(deviceId: string, notifId: string):
   } catch {
     return false;
   }
+}
+
+/**
+ * The in-app notification center's data (spec §27, Phase 9) — this device's recent
+ * notifications, newest first. Same silent-degrade posture as everything else here:
+ * an unconfigured/unreachable API just means an empty list, never a visible error.
+ */
+export async function fetchNotificationHistory(deviceId: string, limit = 30): Promise<NotificationHistoryItem[]> {
+  if (!isApiConfigured) return [];
+  try {
+    const res = await fetch(
+      `${BASE_URL}/api/notifications/history?deviceId=${encodeURIComponent(deviceId)}&limit=${limit}`,
+    );
+    if (!res.ok) return [];
+    const body = (await res.json()) as { ok: boolean; items?: NotificationHistoryItem[] };
+    return body.items ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function updateHistoryRow(deviceId: string, notifId: string, action: 'read' | 'dismiss'): Promise<boolean> {
+  if (!isApiConfigured) return false;
+  try {
+    const res = await fetch(`${BASE_URL}/api/notifications/history`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId, notifId, action }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Spec §27's "mark as read" — independent of `markNotificationOpened` above, which
+ *  tracks an actual click-through, not just having seen the item in the list. */
+export function markNotificationRead(deviceId: string, notifId: string): Promise<boolean> {
+  return updateHistoryRow(deviceId, notifId, 'read');
+}
+
+/** Spec §27's "optionally dismiss" — removes the row from future `fetchNotificationHistory`
+ *  results (api/notifications/history.ts's GET filters on `dismissedAt: null`); the row
+ *  itself is kept, not deleted, since it still counts toward dispatch.ts's fatigue/
+ *  duplicate-recipe/cooldown checks. */
+export function dismissNotification(deviceId: string, notifId: string): Promise<boolean> {
+  return updateHistoryRow(deviceId, notifId, 'dismiss');
 }
 
 export async function sendTestNotification(

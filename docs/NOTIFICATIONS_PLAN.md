@@ -471,15 +471,45 @@ happened and was verified before any push-notification code touched it:
      `mealHistorySnapshots` doc, which is all `computeWeekStats` needs, and
      `preferences.smart.weeklySummary` has been a real toggle since Phase 4.
 
+9. ✅ **Done** — notification-history UI (spec Phase 10, §27), reading back
+   `notificationHistory` — this doc's plan had closed at 8 (§34's mapping below), so
+   this phase is numbered relative to that closing summary, not spec's own count.
+   - **New:** `api/notifications/history.ts` — `GET ?deviceId=&limit=` returns this
+     device's recent *sent* rows newest-first (`status: 'failed'` and dismissed rows
+     excluded); `POST { deviceId, notifId, action: 'read' | 'dismiss' }` for spec §27's
+     "mark as read" / "optionally dismiss". "Open recommendation" needed no new
+     endpoint — it's a deep link through the same `notificationClickUrl` helper
+     `src/sw.ts`/`foreground.ts` already use, so `App.tsx`'s existing
+     `useNotificationOpenTracking` (any route change carrying `?notif=`, in-app or not)
+     marks it opened and logs analytics for free, exactly like clicking a real push.
+   - `notificationHistory` rows gained `readAt`/`dismissedAt` (both `null` at insert,
+     `api/_lib/history.ts`) alongside the existing `openedAt` — three independent
+     signals: seen in the list, clicked through, removed from the list. Dismissing
+     doesn't delete the row — `dispatch.ts`'s duplicate-recipe/cooldown checks still
+     need it, only `status: 'sent'` matters there, not `dismissedAt`.
+   - `NotificationHistoryItem` (`src/domain/types.ts`) is the client-facing shape,
+     shared type-only between the API response and `NotificationHistory.tsx` — same
+     anti-drift reasoning as `NotificationPreferences`. `title`/`body` travel as the
+     exact text already pushed to the device rather than being recomputed client-side,
+     so the list can never show something different from what was actually sent.
+   - `src/components/NotificationHistory.tsx`, mounted in Profile ("You") right under
+     `NotificationsSettings`. Renders nothing at all — not even an empty state — when
+     there's nothing to show, matching this feature's established silence-beats-noise
+     posture (spec §14, Phase 8's `weeklySummaryTemplate` returning `null`) rather than
+     greeting the majority of visitors who've never enabled notifications with an empty
+     card.
+   - Not built: any "mark all as read" bulk action or pagination beyond the most recent
+     `MAX_LIMIT` (50) rows — spec §27 asks for a lightweight history, not a full inbox.
+
 **Where this leaves spec §34's full 11-phase list:** Phases 1–8 above map to spec's
 Phases 1–8 and are done, to the extent and with the caveats recorded above. Spec's
-Phase 9 (Firebase Analytics) landed early, inside Phase 7. Not built: spec's Phase 10
-(notification history UI, §27 — the data layer exists, nothing renders it yet) and
-Phase 11 (optional AI-generated notification copy, §22 — explicitly optional, and the
-deterministic engine remains authoritative either way). Also still open: the
-`usePrefs`/diet-sync gap and the fatigue-reduction gap, both called out where they were
-found above, and actually deploying this and checking Vercel's logs for the JSON-import
-risk flagged in Phase 6 — nothing here has been proven against a real Vercel run yet.
+Phase 9 (Firebase Analytics) landed early, inside Phase 7; spec's Phase 10 (notification
+history UI, §27) is this doc's Phase 9 above. Not built: spec's Phase 11 (optional
+AI-generated notification copy, §22 — explicitly optional, and the deterministic engine
+remains authoritative either way). Also still open: the `usePrefs`/diet-sync gap and the
+fatigue-reduction gap, both called out where they were found above, and actually
+deploying this and checking Vercel's logs for the JSON-import risk flagged in Phase 6 —
+nothing here has been proven against a real Vercel run yet.
 
 Each phase ships independently reviewable/testable, per the spec's own §34 instruction
 not to build all of this in one pass.
