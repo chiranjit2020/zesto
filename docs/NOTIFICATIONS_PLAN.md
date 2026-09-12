@@ -558,20 +558,22 @@ remains authoritative either way). Also still open: the `usePrefs`/diet-sync gap
 fatigue-reduction gap, both called out where they were found above.
 
 **2026-09-12 real-deploy status:** the "nothing proven against a real Vercel run yet"
-caveat that shadowed every phase through Phase 8 is now mostly closed — see Phase 9's
-own "first real deployment" notes above for what that took (a Vercel account setting,
-three missing environment variables, and one real CORS bug). Verified working end to
-end against this real deployment: `register-device`, `preferences` (GET/POST), `test`
-(the full Admin SDK send path), and Phase 9's own `history` (GET/POST). **Still not
-verified: `dispatch.ts` itself.** Its cron workflow file only exists on this branch, so
-GitHub Actions has never registered or run it (not a bug — just a fact of not being
-merged to `main` yet), and none of today's manual testing called it directly either
-(it's gated by a separate secret, `NOTIFICATIONS_CRON_SECRET`, not exercised today). That
-means Phase 6's specific JSON-import risk (`dispatch.ts` → `recommend.ts` →
-`effort.ts`/`catalog.ts`'s `.js`-extension and JSON-import-attribute syntax, under
-Vercel's actual `@vercel/node` compile step) remains the one real open question before
-merging — worth a manual `workflow_dispatch`-style direct call to `dispatch.ts` (with
-`NOTIFICATIONS_CRON_SECRET`) before relying on the cron in production.
+caveat that shadowed every phase through Phase 8 is now fully closed — see Phase 9's own
+"first real deployment" notes above for what that took (a Vercel account setting, three
+missing environment variables, and one real CORS bug). Verified working end to end
+against this real deployment: `register-device`, `preferences` (GET/POST), `test` (the
+full Admin SDK send path), Phase 9's own `history` (GET/POST) — and, last,
+**`dispatch.ts` itself**, called directly with `NOTIFICATIONS_CRON_SECRET` (its cron
+workflow still can't run on its own — file only exists on this branch, so GitHub Actions
+has never registered it — but a direct call exercises identical code). Phase 6's
+JSON-import risk (`dispatch.ts` → `recommend.ts` → `effort.ts`/`catalog.ts`'s
+`.js`-extension and JSON-import-attribute syntax, under Vercel's actual `@vercel/node`
+compile step) is resolved: the call returned `{ok: true, evaluated: 2, sent: 1, skipped:
+1}` — one real device got a genuine, correctly-classified recommendation-engine pick
+(a budget-category recipe with real cost/time from `RECIPES`), and the other (a fake
+device registered mid-testing with an invalid FCM token) correctly failed its send and
+was skipped, per spec §29's device-lifecycle rule. Nothing about the notifications
+pipeline remains unverified against a real deployment.
 
 Each phase ships independently reviewable/testable, per the spec's own §34 instruction
 not to build all of this in one pass.
