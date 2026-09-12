@@ -12,6 +12,7 @@ import {
   type NotificationSupportState,
 } from '../lib/notifications/permission';
 import { fetchPreferences, registerDevice, savePreferences, sendTestNotification } from '../lib/notifications/api';
+import { track } from '../lib/track';
 
 const MEAL_LABELS: [keyof NotificationPreferences['meals'], string][] = [
   ['breakfast', 'Breakfast'],
@@ -29,12 +30,6 @@ const SMART_LABELS: [keyof NotificationPreferences['smart'], string][] = [
 ];
 
 const MAX_PER_DAY_OPTIONS = [1, 2, 3].map((n) => ({ value: n, label: String(n) }));
-
-/** Dynamically imported per call, same bundle-splitting rationale as the foreground
- *  message listener — the Analytics SDK never touches the initial bundle. */
-function track(name: string, params?: Record<string, unknown>) {
-  void import('../lib/notifications/analytics').then((m) => m.track(name, params));
-}
 
 function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
   return (

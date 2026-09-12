@@ -11,6 +11,7 @@ import { Icon } from '../components/ui/Icon';
 import { RecipeCard } from '../components/RecipeCard';
 import { NotificationsSettings } from '../components/NotificationsSettings';
 import { NotificationHistory } from '../components/NotificationHistory';
+import { HelpFeedback } from '../components/HelpFeedback';
 import { useNotifications } from '../state/notifications';
 import { rupee2, relativeDay } from '../lib/format';
 import { CHALLENGES, challengeProgress } from '../domain/challenges';
@@ -173,13 +174,15 @@ export function Profile() {
         </div>
       </section>
 
+      <HelpFeedback />
+
       <section className="space-y-2">
         <SectionHeader
           title="Data"
           sub={
             notificationsEnabled
-              ? 'Mostly stored on this device — pantry, cooking history & preferences also sync to our server so smart notifications work'
-              : 'Everything is stored on this device only'
+              ? 'Mostly stored on this device — pantry, cooking history & preferences also sync to our server so smart notifications work. Zesto also collects anonymous usage analytics to improve the app.'
+              : 'Everything is stored on this device only, aside from anonymous usage analytics'
           }
         />
         <Button

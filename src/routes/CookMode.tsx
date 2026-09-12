@@ -13,6 +13,8 @@ import { m, AnimatePresence } from '../components/ui/motion';
 import { RecipeMeta } from '../components/RecipeMeta';
 import { costView } from '../domain/cost';
 import { shareRecipe } from '../lib/shareCard';
+import { track } from '../lib/track';
+import { RecipeFeedback } from '../components/RecipeFeedback';
 
 export function CookMode() {
   const { slug } = useParams();
@@ -27,7 +29,10 @@ export function CookMode() {
   useWakeLock(!!recipe && !finished);
 
   useEffect(() => {
-    if (recipe && cook.recipeNumber !== recipe.number) cook.begin(recipe.number);
+    if (recipe && cook.recipeNumber !== recipe.number) {
+      cook.begin(recipe.number);
+      track('recipe_started', { recipe_number: recipe.number });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipe?.number]);
 
@@ -118,7 +123,16 @@ export function CookMode() {
           <Icon name="back" size={18} /> Back
         </Button>
         {isLast ? (
-          <Button variant="warm" size="lg" block onClick={() => { timer.stop(); setFinished(true); }}>
+          <Button
+            variant="warm"
+            size="lg"
+            block
+            onClick={() => {
+              timer.stop();
+              setFinished(true);
+              track('recipe_completed', { recipe_number: recipe.number });
+            }}
+          >
             <Icon name="celebrate" size={18} /> I'm done cooking
           </Button>
         ) : (
@@ -169,6 +183,7 @@ function CookComplete({
       wasLeftoverRescue: leftoverRescue,
       deliveryAvoided,
     });
+    track('meal_logged', { recipe_number: recipe.number, was_leftover_rescue: leftoverRescue });
     setLogged(true);
   };
 
@@ -179,6 +194,8 @@ function CookComplete({
         <h1 className="text-2xl font-bold mt-4">Nice. You made it.</h1>
         <h2 className="text-lg z-gradient-text font-bold">{recipe.title}</h2>
         <div className="mt-2 flex justify-center"><RecipeMeta recipe={recipe} size="sm" /></div>
+
+        <RecipeFeedback recipeNumber={recipe.number} />
 
         {!logged ? (
           <div className="mt-6 space-y-3 text-left">

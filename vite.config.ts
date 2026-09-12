@@ -1,11 +1,29 @@
 import { defineConfig, type Plugin } from 'vite';
 import { copyFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { execSync } from 'node:child_process';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 // Served under a subpath on GitHub Pages: https://chiranjitkarmakar.com/zesto/
 const BASE = '/zesto/';
+
+/**
+ * Build-time version identifier (docs/ANALYTICS_FEEDBACK_PLAN.md, open question 4) —
+ * the git short SHA of the commit being built, embedded as a literal constant so
+ * feedback/error reports can always be traced back to the exact deployed code, with no
+ * manual version-bumping discipline required. `actions/checkout`'s default shallow
+ * clone still has the checked-out commit itself available, so this works in CI too, not
+ * just local dev. Falls back to 'dev' if git isn't available at all (never breaks the
+ * build over a missing version string).
+ */
+function gitShortSha(): string {
+  try {
+    return execSync('git rev-parse --short HEAD', { cwd: __dirname }).toString().trim();
+  } catch {
+    return 'dev';
+  }
+}
 
 /** GitHub Pages has no SPA rewrite — a copy of index.html at 404.html makes deep links work. */
 function spa404(): Plugin {
@@ -22,6 +40,9 @@ function spa404(): Plugin {
 // https://vitejs.dev/config/
 export default defineConfig({
   base: BASE,
+  define: {
+    __ZESTO_VERSION__: JSON.stringify(gitShortSha()),
+  },
   plugins: [
     react(),
     VitePWA({

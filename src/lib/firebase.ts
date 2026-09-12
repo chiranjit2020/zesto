@@ -3,10 +3,13 @@ import { getMessaging, isSupported, type Messaging } from 'firebase/messaging';
 import { getAnalytics, isSupported as analyticsIsSupported, type Analytics } from 'firebase/analytics';
 
 /**
- * Firebase client wiring (§6/§7 of docs/NOTIFICATIONS_PLAN.md). Guarded end to end so
- * an unconfigured or unsupported browser degrades to "notifications unavailable"
- * rather than breaking anything else — spec §29: "Firebase unavailable → Zesto still
- * works normally."
+ * Firebase client wiring (§6/§7 of docs/NOTIFICATIONS_PLAN.md) — Messaging and Analytics
+ * share one Firebase app instance, so this lives at `lib/` root rather than under
+ * `lib/notifications/` (where it started): Analytics is now used app-wide (see
+ * `lib/analytics.ts`, docs/ANALYTICS_FEEDBACK_PLAN.md), not just for the notification
+ * funnel. Guarded end to end so an unconfigured or unsupported browser degrades to
+ * "notifications/analytics unavailable" rather than breaking anything else — spec §29:
+ * "Firebase unavailable → Zesto still works normally."
  */
 
 const config = {
