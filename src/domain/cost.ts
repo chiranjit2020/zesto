@@ -1,4 +1,4 @@
-import type { Recipe } from './types';
+import type { Recipe } from './types.js';
 
 /**
  * Cost engine (§12). Prices are ESTIMATES, never guarantees. The book itself distinguishes

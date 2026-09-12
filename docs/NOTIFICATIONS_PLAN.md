@@ -451,7 +451,35 @@ happened and was verified before any push-notification code touched it:
    - Phase 6's fatigue-reduction gap ("gradually reduce frequency for ignored
      notifications") is now *unblocked* (`openedAt` exists to compute open rate from)
      but still not implemented — `dispatch.ts` doesn't read it yet.
-8. Weekly-summary data model (architecture only, per spec §21).
+8. ✅ **Done** — weekly-summary data model, architecture only, exactly as spec §21 asks
+   ("even if the first implementation only prepares the data model").
+   - `computeWeekStats` (already computing spec §21's exact metrics — meals cooked,
+     spend, kcal, leftovers rescued, savings — for `Profile.tsx`'s "This week"
+     dashboard) moved from `state/kitchen.ts` into `src/domain/kitchenHistory.ts`,
+     re-exported unchanged for existing callers, same split-for-server-importability
+     pattern as Phase 6's `pantryContextIds`/`expiringSoon`. Reused, not reimplemented
+     (spec's own "do not fabricate values" reads as "don't compute this twice and risk
+     the two copies drifting").
+   - `src/domain/weeklySummary.ts` — `weeklySummaryTemplate(stats)`, a pure function
+     rendering spec §21's example copy shape from a real `WeekStats`. Returns `null` for
+     a week with nothing cooked rather than sending an empty celebration (consistent
+     with §14's "silence beats noise"). Tested (`weeklySummary.test.ts`) against the
+     exact numbers from spec's own example.
+   - **Deliberately not wired into `dispatch.ts`'s send loop** — doing that needs a
+     *weekly*, not 3-hour, cooldown that doesn't exist yet there. No new collection or
+     sync path is needed when it is: `dispatch.ts` already loads each device's
+     `mealHistorySnapshots` doc, which is all `computeWeekStats` needs, and
+     `preferences.smart.weeklySummary` has been a real toggle since Phase 4.
+
+**Where this leaves spec §34's full 11-phase list:** Phases 1–8 above map to spec's
+Phases 1–8 and are done, to the extent and with the caveats recorded above. Spec's
+Phase 9 (Firebase Analytics) landed early, inside Phase 7. Not built: spec's Phase 10
+(notification history UI, §27 — the data layer exists, nothing renders it yet) and
+Phase 11 (optional AI-generated notification copy, §22 — explicitly optional, and the
+deterministic engine remains authoritative either way). Also still open: the
+`usePrefs`/diet-sync gap and the fatigue-reduction gap, both called out where they were
+found above, and actually deploying this and checking Vercel's logs for the JSON-import
+risk flagged in Phase 6 — nothing here has been proven against a real Vercel run yet.
 
 Each phase ships independently reviewable/testable, per the spec's own §34 instruction
 not to build all of this in one pass.
