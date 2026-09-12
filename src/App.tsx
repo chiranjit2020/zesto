@@ -67,9 +67,34 @@ function useForegroundNotifications() {
   }, [enabled]);
 }
 
+/**
+ * Opt-in pantry + meal-history sync (spec §9 Q3, docs/NOTIFICATIONS_PLAN.md) — same
+ * dynamic-import-behind-`enabled` shape as `useForegroundNotifications` above, so the
+ * sync module (and its subscriptions to usePantry/useKitchen) never loads for the
+ * majority of users who haven't opted into notifications at all.
+ */
+function useDataSync() {
+  const enabled = useNotifications((s) => s.enabled);
+  const deviceId = useNotifications((s) => s.deviceId);
+  useEffect(() => {
+    if (!enabled) return;
+    let stop: (() => void) | null = null;
+    let cancelled = false;
+    import('./lib/notifications/dataSync').then(({ startDataSync }) => {
+      if (cancelled) return;
+      stop = startDataSync(deviceId);
+    });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, [enabled, deviceId]);
+}
+
 export default function App() {
   useApplyTheme();
   useForegroundNotifications();
+  useDataSync();
   const location = useLocation();
   useScrollToTop(location.pathname);
   const fullscreen = FULLSCREEN.test(location.pathname);

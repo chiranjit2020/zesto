@@ -135,8 +135,8 @@ notificationDevices       { userId, installationId, platform:'web', browser, tim
                              enabled, createdAt, lastSeenAt, lastNotificationAt }
 notificationHistory       { userId, deviceId, type, mealType, recipeNumber, title, body,
                              reason, score, sentAt, openedAt, status }
-pantrySnapshots           { userId, items[], updatedAt }   -- NEW, see §9 question 3
-mealHistorySnapshots      { userId, entries[], updatedAt } -- NEW, see §9 question 3
+pantrySnapshots           { _id: deviceId, items[], updatedAt }   -- ✅ Phase 6, api/sync/pantry.ts
+mealHistorySnapshots      { _id: deviceId, entries[], updatedAt } -- ✅ Phase 6, api/sync/meal-history.ts
 ```
 
 Indexes: `notificationDevices.userId`, `notificationHistory.{userId, sentAt}` (recent-
@@ -345,9 +345,77 @@ happened and was verified before any push-notification code touched it:
      Vercel environment variable (any long random string), run `npm run dev` locally,
      enable notifications in Profile, click "Send test notification", paste that same
      token when prompted.
-6. `notifications-dispatch.yml` cron + recommendation-engine integration in
-   `api/notifications/dispatch.ts` + fatigue/quiet-hours rules.
-7. `notificationHistory` + analytics events + deep-link click handling.
+6. ✅ **Done** — pantry/history sync + `notifications-dispatch.yml` cron + recommendation-
+   engine integration in `api/notifications/dispatch.ts` + fatigue/quiet-hours rules.
+   - **Prerequisite that turned out to be missing, built first:** §9 Q3 decided pantry
+     and meal history sync to MongoDB opt-in, but nothing implemented it. Added
+     `api/sync/pantry.ts` + `api/sync/meal-history.ts` (replace-wholesale, same posture
+     as `preferences.ts`), and `src/lib/notifications/dataSync.ts` — started/stopped by
+     a new `useDataSync()` hook in App.tsx, mirroring `useForegroundNotifications()`'s
+     dynamic-import-behind-`enabled` shape. Debounced (3s) subscriptions to `usePantry`/
+     `useKitchen`, plus an immediate push on enable. Profile's "Data" section copy now
+     says so once notifications are on (§3's promised amendment).
+     `pantryContextIds`/`expiringSoon` (from `state/pantry.ts`) and
+     `recentlyCookedNumbers` (from `state/kitchen.ts`) were split into
+     `src/domain/pantry.ts` / `src/domain/kitchenHistory.ts` — pure, no zustand — since
+     the originals call `persist(...)`, which touches `localStorage` at module load and
+     would crash under Node the moment `api/` imported them.
+   - **Not yet closed:** `usePrefs` (diet, equipment, budget/time defaults) still isn't
+     synced — only pantry + history were ever scoped for sync (§9 Q3). `dispatch.ts`
+     hardcodes `diet: 'any'`, meaning a vegetarian user could in principle get an
+     egg-dish notification. Real gap, not silently glossed over; closing it means
+     extending the sync the same way pantry/history were.
+   - **`api/notifications/dispatch.ts`** — cron-only (`x-admin-token` against
+     `NOTIFICATIONS_CRON_SECRET`, same `api/_lib/auth.ts` as Phase 5's test endpoint).
+     Per enabled device: resolve preferences (deep-merged over defaults so a doc missing
+     a field never reads as `undefined`) → skip if the master switch is off → quiet
+     hours → which meal window (spec §12's defaults; `midnight` isn't in
+     `NotificationPreferences.meals` — that shape shipped in Phase 4 without it — so it
+     borrows the `supper` toggle as its gate, and default quiet hours already cover it
+     for anyone who hasn't deliberately narrowed that window) → daily limit → load the
+     device's pantry/history snapshot → `rankRecipes` (reused directly, not
+     reimplemented, per spec §10) → classify each candidate into spec §15's priority
+     categories (pantry-expiry 95, pantry-match 90, leftover-rescue 85, budget 80, meal
+     60 — ingredient-expiry and leftover detection both reuse `expiringSoon`, there's no
+     separate "flag this as a leftover" feature in the app to hang real leftover-rescue
+     off of) → pick the highest-priority classified candidate that's both enabled in
+     preferences and clear of duplicate-recipe (3 days) / same-category cooldown (3h) →
+     send via `api/_lib/fcm.ts`, log to `notificationHistory`. Every device logs a
+     structured decision either way (spec §30), sent or skipped.
+   - Not implemented, and said so rather than faked: spec §14's "recent app activity
+     suppression" (no signal exists — `lastSeenAt` only updates on device
+     (re)registration, not general app use, so it wouldn't reflect real activity) and
+     "gradually reduce frequency for ignored notifications" (needs open-rate data,
+     which needs `openedAt` tracking — that's Phase 7). Re-engagement (priority 20, no
+     preference toggle) isn't generated yet either.
+   - `.github/workflows/notifications-dispatch.yml` — `schedule: '*/30 * * * *'` +
+     `workflow_dispatch` for manual runs, `curl`s the dispatcher with
+     `NOTIFICATIONS_CRON_SECRET` (new repo secret, same value as the Vercel env var) and
+     reuses the existing `VITE_API_BASE_URL` secret for the endpoint.
+   - **A real risk, verified as far as locally possible, not fully provable without an
+     actual deploy:** `dispatch.ts` is the first `api/` file to transitively import
+     `src/domain/recommend.ts` → `src/domain/effort.ts`/`src/data/catalog.ts`, which
+     loads two JSON files and previously used extensionless imports — exactly the class
+     of thing that crashed Phase 3 at runtime (see Phase 3's `.js`-extension fix above).
+     Fixed the same way (`.js` extensions throughout, plus `with { type: 'json' }` on
+     the two JSON imports in `catalog.ts` — the modern, standards-track syntax Node's
+     own ESM loader asks for). Verified: `npm run typecheck:api` clean, `npm run build` /
+     `vitest run` still pass (this file is shared with the browser bundle, so it has to
+     keep working there too), and reverse-engineered `@vercel/node`'s actual compilation
+     path from its installed source (`ts.transpileModule`, not esbuild) to confirm the
+     syntax survives that specific transform. Still: this exact combination (JSON import
+     attributes reaching Vercel's Node runtime) has never actually been exercised in
+     production. **First thing to check after deploying this phase:** trigger the
+     workflow manually (`workflow_dispatch`) or call `api/notifications/dispatch.ts`
+     directly and read the Vercel function logs — if `catalog.ts`'s JSON imports are
+     going to fail at runtime, that's where it'll show up.
+   - Added `api/_lib/time.ts` (timezone-aware local-time/window math, no date-library
+     dependency) with its own test file, `api/_lib/time.test.ts` — the wraparound logic
+     (quiet hours and the midnight window both cross local midnight) is easy to get
+     subtly wrong and is exercised there, including actual UTC-offset timezone cases.
+7. `notificationHistory` (already being written by Phases 5/6) + analytics events +
+   deep-link click handling + `openedAt` tracking (which Phase 6's fatigue-reduction
+   gap above depends on).
 8. Weekly-summary data model (architecture only, per spec §21).
 
 Each phase ships independently reviewable/testable, per the spec's own §34 instruction

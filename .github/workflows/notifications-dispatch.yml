@@ -1,0 +1,23 @@
+name: Notifications dispatch
+
+# Replaces Firebase Cloud Scheduler (docs/NOTIFICATIONS_PLAN.md §0's 2026-09-12 decision)
+# — GitHub Actions schedule: is free and this repo already relies on it for deploy.yml.
+# All the actual per-device evaluation (prefs, quiet hours, daily limit, recommendation
+# scoring, send/skip) lives in api/notifications/dispatch.ts; this workflow only proves
+# the call really came from here, via the shared secret header (spec §23).
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the Vercel dispatcher
+        run: |
+          curl --fail-with-body -sS -X POST \
+            -H "x-admin-token: ${{ secrets.NOTIFICATIONS_CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            "${{ secrets.VITE_API_BASE_URL }}/api/notifications/dispatch"

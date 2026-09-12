@@ -10,6 +10,7 @@ import { Button } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
 import { RecipeCard } from '../components/RecipeCard';
 import { NotificationsSettings } from '../components/NotificationsSettings';
+import { useNotifications } from '../state/notifications';
 import { rupee2, relativeDay } from '../lib/format';
 import { CHALLENGES, challengeProgress } from '../domain/challenges';
 import { useInstallPrompt } from '../app/useInstallPrompt';
@@ -19,6 +20,7 @@ export function Profile() {
   const { history, favorites, clear } = useKitchen();
   const pantryCount = usePantry((s) => s.items.length);
   const install = useInstallPrompt();
+  const notificationsEnabled = useNotifications((s) => s.enabled);
 
   const stats = useMemo(() => computeWeekStats(history), [history]);
   const streak = useMemo(() => cookingStreakDays(history), [history]);
@@ -169,7 +171,14 @@ export function Profile() {
       </section>
 
       <section className="space-y-2">
-        <SectionHeader title="Data" sub="Everything is stored on this device only" />
+        <SectionHeader
+          title="Data"
+          sub={
+            notificationsEnabled
+              ? 'Mostly stored on this device — pantry & cooking history also sync to our server so smart notifications work'
+              : 'Everything is stored on this device only'
+          }
+        />
         <Button
           variant="danger"
           size="sm"

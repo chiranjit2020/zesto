@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { MealHistoryEntry } from '../domain/types';
 import { RECIPE_BY_NUMBER } from '../data/catalog';
 import { estimatedSaving } from '../domain/cost';
+export { recentlyCookedNumbers } from '../domain/kitchenHistory';
 
 interface KitchenStore {
   history: MealHistoryEntry[];
@@ -109,7 +110,3 @@ export function cookingStreakDays(history: MealHistoryEntry[], now = Date.now())
   return streak;
 }
 
-export function recentlyCookedNumbers(history: MealHistoryEntry[], days = 3, now = Date.now()): number[] {
-  const cutoff = now - days * 86400000;
-  return history.filter((h) => new Date(h.cookedAt).getTime() >= cutoff).map((h) => h.recipeNumber);
-}

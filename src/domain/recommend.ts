@@ -3,8 +3,8 @@ import type {
   EquipmentId,
   Recipe,
   ScoredRecipe,
-} from './types';
-import { effortRank } from './effort';
+} from './types.js';
+import { effortRank } from './effort.js';
 
 /**
  * The Zesto Decision Engine (§9, §10).
