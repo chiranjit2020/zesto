@@ -1,8 +1,9 @@
+import { ObjectId } from 'mongodb';
 import { getDb } from './mongo.js';
 
 /**
  * One row of `notificationHistory` (spec §8/§20's funnel). `type` is left as `string`
- * rather than a fixed union here since Phase 6's dispatcher will add the real meal/smart
+ * rather than a fixed union here since Phase 6's dispatcher has the real meal/smart
  * categories (breakfast, pantry, budget, …) — this file only needs the shape, not the
  * vocabulary. `recipeNumber` matches this repo's own catalog key (`src/data/catalog.ts`
  * indexes recipes by `number`, not `id` — spec §8's `recipeId` doesn't exist here).
@@ -22,14 +23,27 @@ export interface NotificationHistoryRecord {
 }
 
 /**
- * Appends one row. Never throws — a logging failure must never mask or reverse the
- * actual send result the caller already committed to returning (spec §29's general
- * "failure must not cascade" posture).
+ * A fresh id for a notification about to be sent — generated *before* the push goes
+ * out so it can be embedded in the FCM payload's `data.notifId` (spec §17's deep link
+ * needs to say *which* notification was clicked, for open-tracking), then passed to
+ * `recordNotification` below once the send's outcome is known. Simpler than inserting
+ * a placeholder row and updating it after send: Mongo accepts a caller-supplied `_id`
+ * at insert time, so this is one insert, not an insert-then-update.
  */
-export async function recordNotification(record: NotificationHistoryRecord): Promise<void> {
+export function newNotificationId(): ObjectId {
+  return new ObjectId();
+}
+
+/**
+ * Appends one row under the given id. Never throws — a logging failure must never mask
+ * or reverse the actual send result the caller already committed to returning (spec
+ * §29's general "failure must not cascade" posture).
+ */
+export async function recordNotification(id: ObjectId, record: NotificationHistoryRecord): Promise<void> {
   try {
     const db = await getDb();
     await db.collection('notificationHistory').insertOne({
+      _id: id,
       ...record,
       sentAt: new Date(),
       openedAt: null,

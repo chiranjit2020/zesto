@@ -22,6 +22,7 @@ import { CacheableResponsePlugin } from 'workbox-cacheable-response';
 import { clientsClaim } from 'workbox-core';
 import { initializeApp } from 'firebase/app';
 import { getMessaging, isSupported, onBackgroundMessage, type MessagePayload } from 'firebase/messaging/sw';
+import { notificationClickUrl } from './lib/notifications/payload';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -98,7 +99,7 @@ if (Object.values(firebaseConfig).every(Boolean)) {
             icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
             badge: `${import.meta.env.BASE_URL}icons/icon-192.png`,
             tag: data.type ?? 'zesto-notification',
-            data: { url: data.url ?? import.meta.env.BASE_URL },
+            data: { url: data.url ?? import.meta.env.BASE_URL, notifId: data.notifId ?? '' },
           })
           .catch((err) => console.error('[Zesto SW] showNotification failed:', err));
       });
@@ -114,7 +115,7 @@ if (Object.values(firebaseConfig).every(Boolean)) {
 // Deep-link on click (spec §17) — works whether Zesto is already open in a tab or not.
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
-  const url = (event.notification.data?.url as string | undefined) ?? import.meta.env.BASE_URL;
+  const url = notificationClickUrl(event.notification.data ?? {}, import.meta.env.BASE_URL);
   event.waitUntil(
     (async () => {
       const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });

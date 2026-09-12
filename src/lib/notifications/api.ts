@@ -65,6 +65,26 @@ export async function savePreferences(deviceId: string, patch: Partial<Notificat
  * never persists it, and renders the button itself only behind `import.meta.env.DEV` —
  * so the whole call site is dead code, stripped from every production build.
  */
+/**
+ * Marks one `notificationHistory` row opened (spec §17/§20) — called once the app has
+ * loaded with the `?notif=` param `src/sw.ts`'s `notificationclick` handler adds. Same
+ * fire-and-forget posture as the rest of this file: a failed mark is lost telemetry,
+ * never a broken app.
+ */
+export async function markNotificationOpened(deviceId: string, notifId: string): Promise<boolean> {
+  if (!isApiConfigured) return false;
+  try {
+    const res = await fetch(`${BASE_URL}/api/notifications/opened`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ deviceId, notifId }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function sendTestNotification(
   deviceId: string,
   adminToken: string,

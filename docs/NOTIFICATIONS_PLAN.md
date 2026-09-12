@@ -206,6 +206,7 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
 VITE_FIREBASE_VAPID_KEY=
+VITE_FIREBASE_MEASUREMENT_ID=        # optional — Analytics (spec §19), Phase 7. Unset = analytics off.
 VITE_API_BASE_URL=                   # the Vercel project's URL, e.g. https://zesto-api.vercel.app
 
 # api/ only (Vercel Environment Variables — never committed, never in the client bundle)
@@ -413,9 +414,43 @@ happened and was verified before any push-notification code touched it:
      dependency) with its own test file, `api/_lib/time.test.ts` — the wraparound logic
      (quiet hours and the midnight window both cross local midnight) is easy to get
      subtly wrong and is exercised there, including actual UTC-offset timezone cases.
-7. `notificationHistory` (already being written by Phases 5/6) + analytics events +
-   deep-link click handling + `openedAt` tracking (which Phase 6's fatigue-reduction
-   gap above depends on).
+7. ✅ **Done** — deep-link open tracking (`openedAt`) + Firebase Analytics events (spec
+   §19/§20). `notificationHistory` itself was already being written by Phases 5/6; this
+   phase closes the loop on *reading* it back.
+   - **Click → `openedAt`, end to end:** `api/_lib/history.ts` now generates the Mongo
+     `_id` *before* sending (`newNotificationId()`), so it can travel inside the FCM
+     `data` payload as `notifId`. `src/sw.ts`'s `notificationclick` handler (and
+     `foreground.ts`'s equivalent) append it to the deep-link URL as `?notif=<id>` via
+     the one shared helper both paths call, `src/lib/notifications/payload.ts` (spec
+     §18: "keep behavior consistent" between foreground/background). A new
+     `useNotificationOpenTracking()` hook in App.tsx reads that param on every route
+     change, calls the new `POST /api/notifications/opened` (`deviceId`-scoped — a
+     device can only mark its own rows), and strips the param via `navigate(...,
+     {replace:true})` so a refresh doesn't re-fire it.
+   - **Firebase Analytics** — `src/lib/notifications/analytics.ts`, a thin
+     `logEvent` wrapper, dynamically imported everywhere it's used (same "never touches
+     the initial bundle" rule as the rest of this feature — verified via `npm run
+     build` + grep, same technique as Phase 5's test button). Needs its own
+     `VITE_FIREBASE_MEASUREMENT_ID` (optional — unset just means analytics stays off).
+     Wired: `notification_permission_requested/_granted/_denied`, `notification_enabled/
+     _disabled` (from `NotificationsSettings.tsx`'s enable/disable handlers),
+     `notification_opened` + `notification_recipe_viewed` (from the open-tracking hook
+     above).
+   - **Not wired, stated rather than faked:** `notification_received` and
+     `notification_dismissed` — the Analytics Web SDK needs a normal window/tab context
+     (gtag.js, IndexedDB) and isn't reliably usable from `src/sw.ts`'s service-worker
+     scope, so a push arriving while the app is backgrounded/closed, or dismissed
+     without a click, has no analytics signal from this app. `smart_notification_
+     generated/_skipped` and the `pantry_/budget_/leftover_notification_generated`
+     events are server-side decisions `dispatch.ts` already logs structurally (spec
+     §30) — mirroring them into Firebase Analytics too would need the GA4 Measurement
+     Protocol (a separate server-to-GA4 integration, not the client SDK used here),
+     out of scope for this pass. `notification_recipe_started/_completed` tied
+     specifically to a notification-originated session also isn't tracked — would need
+     session-scoped attribution this app doesn't have anywhere yet.
+   - Phase 6's fatigue-reduction gap ("gradually reduce frequency for ignored
+     notifications") is now *unblocked* (`openedAt` exists to compute open rate from)
+     but still not implemented — `dispatch.ts` doesn't read it yet.
 8. Weekly-summary data model (architecture only, per spec §21).
 
 Each phase ships independently reviewable/testable, per the spec's own §34 instruction

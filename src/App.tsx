@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { useApplyTheme } from './app/theme';
 import { ZMark } from './components/ui/ZMark';
@@ -91,10 +91,42 @@ function useDataSync() {
   }, [enabled, deviceId]);
 }
 
+/**
+ * The other end of `src/sw.ts`'s `notificationclick` deep link (spec §17 → §20's
+ * funnel): a click adds `?notif=<id>` to the target URL (`notificationClickUrl` in
+ * `src/lib/notifications/payload.ts`). Once this app itself has loaded with that param
+ * — foreground or background click, doesn't matter, both land here the same way — mark
+ * the row opened server-side and log the analytics event, then strip the param so a
+ * refresh or back-navigation doesn't re-fire either. Runs on every route change since a
+ * click can deep-link straight into any page, not just one this hook lives near.
+ */
+function useNotificationOpenTracking() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const deviceId = useNotifications((s) => s.deviceId);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const notifId = params.get('notif');
+    if (!notifId) return;
+
+    params.delete('notif');
+    navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+
+    void import('./lib/notifications/api').then(({ markNotificationOpened }) => markNotificationOpened(deviceId, notifId));
+    void import('./lib/notifications/analytics').then(({ track }) => {
+      track('notification_opened', { notif_id: notifId });
+      if (location.pathname.startsWith('/r/')) track('notification_recipe_viewed', { path: location.pathname });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, location.search, deviceId]);
+}
+
 export default function App() {
   useApplyTheme();
   useForegroundNotifications();
   useDataSync();
+  useNotificationOpenTracking();
   const location = useLocation();
   useScrollToTop(location.pathname);
   const fullscreen = FULLSCREEN.test(location.pathname);

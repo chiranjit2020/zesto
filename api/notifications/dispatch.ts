@@ -4,7 +4,7 @@ import { applyCors } from '../_lib/cors.js';
 import { requireAdminToken } from '../_lib/auth.js';
 import { getDb } from '../_lib/mongo.js';
 import { sendPush, isUnregisteredTokenError } from '../_lib/fcm.js';
-import { recordNotification } from '../_lib/history.js';
+import { newNotificationId, recordNotification } from '../_lib/history.js';
 import { localParts, minutesSinceMidnight, inWindow, approxLocalMidnightUtc } from '../_lib/time.js';
 import { rankRecipes } from '../../src/domain/recommend.js';
 import { pantryContextIds, expiringSoon } from '../../src/domain/pantry.js';
@@ -246,13 +246,22 @@ async function evaluateDevice(db: Db, device: DeviceDoc, now: Date): Promise<Eva
   const url = `/r/${chosen.candidate.recipe.slug}`;
   const recipeNumber = chosen.candidate.recipe.number;
 
+  const notifId = newNotificationId();
   try {
+    // notifId travels in the payload so a click can be traced back to this exact row
+    // (spec §17/§20 — see src/sw.ts's notificationclick handler).
     await sendPush(device.fcmToken, {
       title,
       body,
-      data: { type: chosen.category, mealType: window.type, url, recipeNumber: String(recipeNumber) },
+      data: {
+        type: chosen.category,
+        mealType: window.type,
+        url,
+        recipeNumber: String(recipeNumber),
+        notifId: notifId.toString(),
+      },
     });
-    await recordNotification({
+    await recordNotification(notifId, {
       userId: device._id,
       deviceId: device._id,
       type: chosen.category,
@@ -278,7 +287,7 @@ async function evaluateDevice(db: Db, device: DeviceDoc, now: Date): Promise<Eva
     if (isUnregisteredTokenError(err)) {
       await db.collection<DeviceDoc>('notificationDevices').updateOne({ _id: device._id }, { $set: { enabled: false } });
     }
-    await recordNotification({
+    await recordNotification(notifId, {
       userId: device._id,
       deviceId: device._id,
       type: chosen.category,

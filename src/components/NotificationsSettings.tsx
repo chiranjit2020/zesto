@@ -30,6 +30,12 @@ const SMART_LABELS: [keyof NotificationPreferences['smart'], string][] = [
 
 const MAX_PER_DAY_OPTIONS = [1, 2, 3].map((n) => ({ value: n, label: String(n) }));
 
+/** Dynamically imported per call, same bundle-splitting rationale as the foreground
+ *  message listener — the Analytics SDK never touches the initial bundle. */
+function track(name: string, params?: Record<string, unknown>) {
+  void import('../lib/notifications/analytics').then((m) => m.track(name, params));
+}
+
 function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: () => void }) {
   return (
     <label className="flex items-center justify-between gap-3 text-sm py-1.5">
@@ -118,11 +124,14 @@ export function NotificationsSettings() {
   const handleEnable = async () => {
     setBusy(true);
     setError(null);
+    track('notification_permission_requested');
     const result = await enableNotifications();
     setBusy(false);
     if (result.ok && result.token) {
       store.enable(result.token);
       setSupport('granted');
+      track('notification_permission_granted');
+      track('notification_enabled');
       // Harmless to leave in: an FCM token is only useful together with this
       // project's own server key, and isn't sensitive the way an auth credential is.
       console.info('[Zesto] FCM token:', result.token);
@@ -132,6 +141,7 @@ export function NotificationsSettings() {
       void registerDevice(store.deviceId, result.token);
       return;
     }
+    if (result.reason === 'permission-denied') track('notification_permission_denied');
     setSupport(await getNotificationSupportState());
     setError(
       result.reason === 'permission-denied'
@@ -156,6 +166,7 @@ export function NotificationsSettings() {
     setBusy(true);
     await disableNotifications();
     store.disable();
+    track('notification_disabled');
     setBusy(false);
   };
 

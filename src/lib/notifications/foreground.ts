@@ -34,7 +34,7 @@ export async function listenForForegroundMessages(): Promise<Unsubscribe | null>
         icon: `${import.meta.env.BASE_URL}icons/icon-192.png`,
         badge: `${import.meta.env.BASE_URL}icons/icon-192.png`,
         tag: data.type ?? 'zesto-notification',
-        data: { url: data.url ?? import.meta.env.BASE_URL },
+        data: { url: data.url ?? import.meta.env.BASE_URL, notifId: data.notifId ?? '' },
       });
       // eslint-disable-next-line no-console
       console.info('[Zesto] showNotification resolved — should be visible now');

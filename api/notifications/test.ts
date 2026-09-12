@@ -4,7 +4,7 @@ import { requireAdminToken } from '../_lib/auth.js';
 import { getDb } from '../_lib/mongo.js';
 import { isValidDeviceId } from '../_lib/validate.js';
 import { sendPush, isUnregisteredTokenError } from '../_lib/fcm.js';
-import { recordNotification } from '../_lib/history.js';
+import { newNotificationId, recordNotification } from '../_lib/history.js';
 
 interface DeviceDoc {
   _id: string;
@@ -52,9 +52,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return;
     }
 
+    const notifId = newNotificationId();
     try {
-      const messageId = await sendPush(device.fcmToken, { title: TITLE, body: BODY, data: { type: 'test', url: URL } });
-      await recordNotification({
+      // notifId travels in the payload so a click can be traced back to this exact row
+      // (spec §17/§20 — see src/sw.ts's notificationclick handler).
+      const messageId = await sendPush(device.fcmToken, {
+        title: TITLE,
+        body: BODY,
+        data: { type: 'test', url: URL, notifId: notifId.toString() },
+      });
+      await recordNotification(notifId, {
         userId: deviceId,
         deviceId,
         type: 'test',
@@ -70,7 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (isUnregisteredTokenError(sendErr)) {
         await db.collection<DeviceDoc>('notificationDevices').updateOne({ _id: deviceId }, { $set: { enabled: false } });
       }
-      await recordNotification({
+      await recordNotification(notifId, {
         userId: deviceId,
         deviceId,
         type: 'test',
