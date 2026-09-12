@@ -500,6 +500,54 @@ happened and was verified before any push-notification code touched it:
      card.
    - Not built: any "mark all as read" bulk action or pagination beyond the most recent
      `MAX_LIMIT` (50) rows — spec §27 asks for a lightweight history, not a full inbox.
+   - **Follow-up fix, found while testing:** `notificationHistory` also gained a `url`
+     field, stored verbatim at send time (`dispatch.ts`/`test.ts`) instead of the history
+     UI re-deriving a link from `recipeNumber` alone — that broke for `test.ts`'s own
+     test send (no recipe, links to `/you`), which would have shown up permanently
+     unclickable on the very first real test.
+   - **2026-09-12 — first real deployment, verified end to end.** Every previous phase's
+     "not yet proven against a real Vercel run" caveat is now closed. Getting there
+     surfaced several gaps that had been invisible until an actual browser hit the actual
+     deployment:
+     - **Vercel Deployment Protection (the account-level SSO wall)** was on for Preview
+       deployments and blocked *every* API call outright — including the real app's own
+       `fetch()` calls, which surfaced as a plain CORS error (no `Access-Control-Allow-
+       Origin` header) rather than anything obviously auth-related, since the block
+       happens at Vercel's edge before this app's own CORS code ever runs. Turned off for
+       Preview. This is a standing requirement, not a one-time fix: this API is designed
+       for anonymous, unauthenticated calls from any visitor's browser (no login exists
+       in this app), so Production must ship with protection off too, or real users hit
+       the same wall. **Check this setting first** if `api/notifications/*` calls ever
+       start failing in a way that looks like CORS but nothing CORS-related changed.
+     - **Three environment variables were never actually set in Vercel**, despite earlier
+       phases' notes claiming they were configured — nothing had ever exercised them for
+       real, because the SSO wall above blocked every attempt until now: `MONGODB_URI`
+       (every Mongo-touching endpoint returned a fast, generic `500`), then
+       `NOTIFICATIONS_TEST_ADMIN_TOKEN` (`api/_lib/auth.ts`'s fail-closed `503`), then
+       `FIREBASE_SERVICE_ACCOUNT_JSON` (`api/_lib/fcm.ts` throws synchronously, surfaced
+       by `api/notifications/test.ts` as a generic `502 send-failed`). Each needed adding
+       in Vercel (scoped to Preview) and a fresh deploy — Vercel only reads env vars at
+       deploy time, not per-request.
+     - **Real code bug, not an environment gap:** `api/_lib/cors.ts`'s
+       `Access-Control-Allow-Headers` only ever listed `Content-Type`. The dev-only
+       "Send test notification" button (`sendTestNotification` in
+       `src/lib/notifications/api.ts`) sends a custom `x-admin-token` header, which
+       forces a CORS preflight — so that button has been broken from a real browser
+       since Phase 5, just never caught because nothing got far enough to hit it. Fixed
+       by allowlisting `x-admin-token` alongside `Content-Type`. `dispatch.ts`'s cron
+       call was never affected — `curl`, unlike a browser, doesn't preflight.
+     - **`npm run dev` cannot be used to test `enableNotifications()` at all** —
+       `vite.config.ts` has `devOptions: { enabled: false }` for the PWA plugin, so no
+       service worker is ever built or registered under `vite dev`. `enableNotifications()`
+       does `await navigator.serviceWorker.ready`, which then simply never resolves —
+       the button hangs on "Enabling…" forever, silently. Must use
+       `npm run build && npm run preview` (matches how earlier phases' offline behavior
+       was always manually re-verified — build + preview, never `dev`).
+     - With all of the above fixed, the full real pipeline was verified working: enable
+       → real FCM token → manual test send → Admin SDK send → foreground delivery →
+       `notificationHistory` write (with the real `url`) → this phase's UI rendering it
+       → mark-as-read via open (deep link to `/you`) → dismiss, persisting across a
+       refresh.
 
 **Where this leaves spec §34's full 11-phase list:** Phases 1–8 above map to spec's
 Phases 1–8 and are done, to the extent and with the caveats recorded above. Spec's
@@ -507,9 +555,23 @@ Phase 9 (Firebase Analytics) landed early, inside Phase 7; spec's Phase 10 (noti
 history UI, §27) is this doc's Phase 9 above. Not built: spec's Phase 11 (optional
 AI-generated notification copy, §22 — explicitly optional, and the deterministic engine
 remains authoritative either way). Also still open: the `usePrefs`/diet-sync gap and the
-fatigue-reduction gap, both called out where they were found above, and actually
-deploying this and checking Vercel's logs for the JSON-import risk flagged in Phase 6 —
-nothing here has been proven against a real Vercel run yet.
+fatigue-reduction gap, both called out where they were found above.
+
+**2026-09-12 real-deploy status:** the "nothing proven against a real Vercel run yet"
+caveat that shadowed every phase through Phase 8 is now mostly closed — see Phase 9's
+own "first real deployment" notes above for what that took (a Vercel account setting,
+three missing environment variables, and one real CORS bug). Verified working end to
+end against this real deployment: `register-device`, `preferences` (GET/POST), `test`
+(the full Admin SDK send path), and Phase 9's own `history` (GET/POST). **Still not
+verified: `dispatch.ts` itself.** Its cron workflow file only exists on this branch, so
+GitHub Actions has never registered or run it (not a bug — just a fact of not being
+merged to `main` yet), and none of today's manual testing called it directly either
+(it's gated by a separate secret, `NOTIFICATIONS_CRON_SECRET`, not exercised today). That
+means Phase 6's specific JSON-import risk (`dispatch.ts` → `recommend.ts` →
+`effort.ts`/`catalog.ts`'s `.js`-extension and JSON-import-attribute syntax, under
+Vercel's actual `@vercel/node` compile step) remains the one real open question before
+merging — worth a manual `workflow_dispatch`-style direct call to `dispatch.ts` (with
+`NOTIFICATIONS_CRON_SECRET`) before relying on the cron in production.
 
 Each phase ships independently reviewable/testable, per the spec's own §34 instruction
 not to build all of this in one pass.
