@@ -25,7 +25,12 @@ export function applyCors(req: VercelRequest, res: VercelResponse): boolean {
     res.setHeader('Vary', 'Origin');
   }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // `x-admin-token`: api/notifications/test.ts's dev-only manual test send (spec §28)
+  // is deliberately called with this header directly from the browser (see that file's
+  // own comment on why that doesn't conflict with spec §23) — a non-simple header like
+  // this forces a CORS preflight, so it has to be allowlisted here or that call fails
+  // before it ever reaches the handler's own admin-token check.
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-token');
 
   if (req.method === 'OPTIONS') {
     res.status(204).end();
