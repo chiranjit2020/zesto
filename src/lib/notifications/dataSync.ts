@@ -1,11 +1,14 @@
 import { usePantry } from '../../state/pantry';
 import { useKitchen } from '../../state/kitchen';
+import { usePrefs } from '../../state/prefs';
 
 /**
- * Opt-in pantry + meal-history sync to the Vercel API (docs/NOTIFICATIONS_PLAN.md §9 Q3).
- * Phase 6's server-side dispatcher needs this — pantry and cooking history otherwise
- * live only in this browser's `localStorage`, which a scheduled function can't read, so
- * without this sync the recommendation engine has nothing to score notifications against.
+ * Opt-in pantry + meal-history + preferences sync to the Vercel API
+ * (docs/NOTIFICATIONS_PLAN.md §9 Q3). The server-side dispatcher needs this — pantry,
+ * cooking history, and diet/equipment/budget defaults otherwise live only in this
+ * browser's `localStorage`, which a scheduled function can't read, so without this sync
+ * the recommendation engine has nothing to score notifications against (and, until the
+ * preferences half of this existed, no way to honor a dietary restriction at all).
  *
  * Only ever started while notifications are enabled — see `useDataSync()` in App.tsx —
  * and every push is fire-and-forget, same posture as the rest of src/lib/notifications:
@@ -35,9 +38,24 @@ export function startDataSync(deviceId: string): () => void {
 
   let pantryTimer: ReturnType<typeof setTimeout> | null = null;
   let historyTimer: ReturnType<typeof setTimeout> | null = null;
+  let prefsTimer: ReturnType<typeof setTimeout> | null = null;
 
   const syncPantry = () => post('/api/sync/pantry', { deviceId, items: usePantry.getState().items });
   const syncHistory = () => post('/api/sync/meal-history', { deviceId, entries: useKitchen.getState().history });
+  const syncPrefs = () => {
+    const { diet, equipmentOwned, defaultBudgetInr, defaultTimeMinutes, defaultMaxEffort, servings, likedTags } =
+      usePrefs.getState();
+    post('/api/sync/prefs', {
+      deviceId,
+      diet,
+      equipmentOwned,
+      defaultBudgetInr,
+      defaultTimeMinutes,
+      defaultMaxEffort,
+      servings,
+      likedTags,
+    });
+  };
 
   const unsubPantry = usePantry.subscribe(() => {
     if (pantryTimer) clearTimeout(pantryTimer);
@@ -47,17 +65,25 @@ export function startDataSync(deviceId: string): () => void {
     if (historyTimer) clearTimeout(historyTimer);
     historyTimer = setTimeout(syncHistory, DEBOUNCE_MS);
   });
+  const unsubPrefs = usePrefs.subscribe(() => {
+    if (prefsTimer) clearTimeout(prefsTimer);
+    prefsTimer = setTimeout(syncPrefs, DEBOUNCE_MS);
+  });
 
   // Push whatever already exists right away — don't wait for the first edit after
-  // enabling, or a user who enables notifications with a pantry already stocked would
-  // get no smart notifications until they touched the pantry again.
+  // enabling, or a user who enables notifications with a pantry already stocked (or a
+  // dietary restriction already set) would get no smart notifications, or a wrong one,
+  // until they touched that state again.
   syncPantry();
   syncHistory();
+  syncPrefs();
 
   return () => {
     if (pantryTimer) clearTimeout(pantryTimer);
     if (historyTimer) clearTimeout(historyTimer);
+    if (prefsTimer) clearTimeout(prefsTimer);
     unsubPantry();
     unsubKitchen();
+    unsubPrefs();
   };
 }

@@ -34,3 +34,32 @@ export function isValidHHMM(v: unknown): v is string {
 export function isBoolean(v: unknown): v is boolean {
   return typeof v === 'boolean';
 }
+
+// Mirrors src/domain/types.ts's Diet/EquipmentId/EffortLevel literal unions. Inlined
+// rather than imported — this file stays dependency-free by design (see the file-level
+// comment) — so a new value added to those types needs adding here too.
+const DIETS = new Set(['vegetarian', 'egg', 'any']);
+const EQUIPMENT_IDS = new Set(['no-cook', 'kettle', 'microwave', 'one-pan', 'one-pot', 'tawa', 'rice-cooker']);
+const EFFORT_LEVELS = new Set(['very-low', 'low', 'medium', 'high']);
+
+export function isValidDiet(v: unknown): v is string {
+  return typeof v === 'string' && DIETS.has(v);
+}
+
+/** api/sync/prefs.ts's own-data round-trip — see api/sync/pantry.ts's isValidItems
+ *  comment for why this is a loose shape check, not a full schema validator. */
+export function isValidEquipmentList(v: unknown): v is string[] {
+  return Array.isArray(v) && v.length <= 20 && v.every((x) => typeof x === 'string' && EQUIPMENT_IDS.has(x));
+}
+
+export function isValidEffortOrNull(v: unknown): v is string | null {
+  return v === null || (typeof v === 'string' && EFFORT_LEVELS.has(v));
+}
+
+export function isNumberOrNull(v: unknown): v is number | null {
+  return v === null || typeof v === 'number';
+}
+
+export function isValidLikedTags(v: unknown): v is string[] {
+  return Array.isArray(v) && v.length <= 50 && v.every((x) => typeof x === 'string' && x.length <= 60);
+}

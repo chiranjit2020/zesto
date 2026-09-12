@@ -12,10 +12,15 @@ import { recentlyCookedNumbers } from '../../src/domain/kitchenHistory.js';
 import { RECIPES } from '../../src/data/catalog.js';
 import {
   DEFAULT_NOTIFICATION_PREFERENCES,
+  DEFAULT_PREFERENCES,
   type DecisionContext,
+  type Diet,
+  type EffortLevel,
+  type EquipmentId,
   type MealHistoryEntry,
   type NotificationPreferences,
   type PantryItem,
+  type Preferences,
   type Recipe,
   type ScoredRecipe,
 } from '../../src/domain/types.js';
@@ -27,14 +32,6 @@ import {
  * this device, and if so, about what? Mirrors spec §9's flow diagram almost step for
  * step — prefs → quiet hours → daily limit → candidates → recommendation engine →
  * send/skip — logging a structured decision (spec §30) for every device either way.
- *
- * Known gap, deliberately not closed here: `usePrefs` (diet, equipment, budget/time
- * defaults) isn't synced server-side, only pantry + meal history (docs/
- * NOTIFICATIONS_PLAN.md §9 Q3 only ever scoped those two). `DecisionContext.diet` below
- * is hardcoded to `'any'` rather than the user's real preference — meaning a vegetarian
- * user could, in principle, get an egg-dish notification. Real gap, tracked here rather
- * than silently glossed over; closing it means extending the sync this same way pantry/
- * history were.
  */
 
 const MAX_DEVICES_PER_RUN = 200;
@@ -90,6 +87,17 @@ interface PantrySnapshotDoc {
 interface HistorySnapshotDoc {
   _id: string;
   entries: MealHistoryEntry[];
+  updatedAt: Date;
+}
+interface PrefsSnapshotDoc {
+  _id: string;
+  diet: Diet;
+  equipmentOwned: EquipmentId[];
+  defaultBudgetInr: number | null;
+  defaultTimeMinutes: number | null;
+  defaultMaxEffort: EffortLevel | null;
+  servings: number;
+  likedTags: string[];
   updatedAt: Date;
 }
 interface HistoryRow {
@@ -202,26 +210,31 @@ async function evaluateDevice(db: Db, device: DeviceDoc, now: Date): Promise<Eva
   const lastSentAtByCategory = new Map<string, Date>();
   for (const h of recentHistory) if (!lastSentAtByCategory.has(h.type)) lastSentAtByCategory.set(h.type, h.sentAt);
 
-  const [pantrySnap, historySnap] = await Promise.all([
+  const [pantrySnap, historySnap, prefsSnap] = await Promise.all([
     db.collection<PantrySnapshotDoc>('pantrySnapshots').findOne({ _id: device._id }),
     db.collection<HistorySnapshotDoc>('mealHistorySnapshots').findOne({ _id: device._id }),
+    db.collection<PrefsSnapshotDoc>('prefsSnapshots').findOne({ _id: device._id }),
   ]);
   const pantryItems = pantrySnap?.items ?? [];
   const history = historySnap?.entries ?? [];
   const expiringIds = new Set(expiringSoon(pantryItems, 3).map((i) => i.ingredientId));
+  // A device that enabled notifications before this sync existed, or hasn't opened the
+  // app since, has no prefsSnapshots doc — falls back to the same defaults the app
+  // itself starts new users on (src/state/prefs.ts), never `undefined`.
+  const userPrefs: Preferences = prefsSnap ? { ...DEFAULT_PREFERENCES, ...prefsSnap } : DEFAULT_PREFERENCES;
 
   const ctx: DecisionContext = {
     pantry: pantryContextIds(pantryItems),
-    budgetInr: null,
-    timeMinutes: null,
+    budgetInr: userPrefs.defaultBudgetInr,
+    timeMinutes: userPrefs.defaultTimeMinutes,
     calorieBand: null,
-    maxEffort: null,
-    equipmentAvailable: null,
-    diet: 'any', // see the file-level comment — not synced yet, a real gap
-    servings: 1,
+    maxEffort: userPrefs.defaultMaxEffort,
+    equipmentAvailable: userPrefs.equipmentOwned,
+    diet: userPrefs.diet,
+    servings: userPrefs.servings,
     leftoverIngredients: [...expiringIds],
     recentlyCookedNumbers: recentlyCookedNumbers(history),
-    likedTags: [],
+    likedTags: userPrefs.likedTags,
   };
 
   const ranked = rankRecipes(RECIPES, ctx, { limit: 8, minScore: 0.35 });

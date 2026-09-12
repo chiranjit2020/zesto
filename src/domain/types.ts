@@ -124,6 +124,25 @@ export interface Preferences {
 }
 
 /**
+ * Shared between `src/state/prefs.ts` (which spreads this into its own store defaults,
+ * plus the UI-only `hasOnboarded` flag) and `api/notifications/dispatch.ts` (which
+ * merges a device's synced `prefsSnapshots` doc over this) — same anti-drift reasoning
+ * as `DEFAULT_NOTIFICATION_PREFERENCES`, closing the gap docs/NOTIFICATIONS_PLAN.md
+ * flagged: a device that enabled notifications before this existed, or never touched
+ * Preferences, must fall back to the same defaults the app itself uses, not `undefined`.
+ */
+export const DEFAULT_PREFERENCES: Preferences = {
+  diet: 'any',
+  equipmentOwned: ['one-pan'],
+  defaultBudgetInr: null,
+  defaultTimeMinutes: null,
+  defaultMaxEffort: null,
+  servings: 1,
+  theme: 'system',
+  likedTags: [],
+};
+
+/**
  * Notification preferences (notification-prompt.md §4/§26). Shared, type-only, between
  * the client (src/lib/notifications/api.ts) and the Vercel API (api/notifications/*) so
  * the two can't silently drift apart — see docs/NOTIFICATIONS_PLAN.md §5.
