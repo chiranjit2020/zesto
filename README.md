@@ -141,3 +141,16 @@ decision.
 `src/domain/recommend.test.ts` encodes the master-prompt acceptance scenarios: rice +
 egg + onion under ₹30, only ₹20, exhausted, midnight, leftover rice, a calorie band,
 impossible constraints. `npm test` runs them.
+
+## License
+
+All Rights Reserved — see [`LICENSE`](LICENSE). This is proprietary, closed-source
+software; the recipe content is used with permission from its author, Samiran Roy.
+
+---
+
+<div align="center">
+
+© 2026 Chiranjit Karmakar. All rights reserved.
+
+</div>

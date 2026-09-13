@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "description": "Tell Zesto your situation. Zesto tells you what you can eat.",
+  "author": "Chiranjit Karmakar",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

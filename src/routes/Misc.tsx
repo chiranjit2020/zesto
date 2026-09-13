@@ -43,6 +43,9 @@ export function About() {
         Zesto is just the engine built around his 99 recipes; he did the real cooking.
       </p>
       <Link to="/" className="block text-center text-xs font-semibold text-brand pt-2">← Home</Link>
+      <p className="text-center text-[11px] text-content-faint pt-2">
+        © 2026 Chiranjit Karmakar. All rights reserved.
+      </p>
     </div>
   );
 }
