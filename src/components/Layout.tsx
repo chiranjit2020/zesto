@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useOnline } from '../lib/hooks';
+import { useNotifications } from '../state/notifications';
 import { ZWordmark } from './ui/ZMark';
 import { Icon, type IconName } from './ui/Icon';
 
@@ -14,6 +15,7 @@ const TABS: { to: string; label: string; icon: IconName; end?: boolean }[] = [
 
 export function Layout({ children }: { children: ReactNode }) {
   const online = useOnline();
+  const hasUnread = useNotifications((s) => s.unreadCount > 0);
   const { pathname } = useLocation();
   const hideChrome = pathname.startsWith('/cook/');
 
@@ -27,10 +29,18 @@ export function Layout({ children }: { children: ReactNode }) {
             </NavLink>
             <NavLink
               to="/profile"
-              aria-label="Notifications"
+              aria-label={hasUnread ? 'Notifications (unread)' : 'Notifications'}
               className="flex items-center gap-1.5 text-xs font-semibold text-content-muted hover:text-content"
             >
-              <Icon name="notify" size={20} />
+              <span className="relative">
+                <Icon name="notify" size={20} />
+                {hasUnread && (
+                  <span
+                    aria-hidden
+                    className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-critical ring-2 ring-surface"
+                  />
+                )}
+              </span>
               {!online && '· offline'}
             </NavLink>
           </div>

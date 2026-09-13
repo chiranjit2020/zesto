@@ -18,11 +18,18 @@ interface NotificationsStore {
   fcmToken: string | null;
   lastPermission: NotificationSupportState | null;
   preferences: NotificationPreferences;
+  /** unread rows in `notificationHistory` — drives the bell icon's red-dot badge
+   *  (Layout.tsx). Deliberately not persisted: it's a live count the server owns
+   *  (readAt), refetched on enable/poll/focus by src/lib/notifications/badge.ts, so a
+   *  stale cached number from a previous session would just be wrong until the next
+   *  refresh anyway. */
+  unreadCount: number;
   enable: (token: string) => void;
   disable: () => void;
   setPermission: (state: NotificationSupportState) => void;
   /** replaces the whole preferences doc — used when the API's copy comes back */
   setPreferences: (p: NotificationPreferences) => void;
+  setUnreadCount: (n: number) => void;
   /** shallow-merges at the top level; callers pass a full nested object (e.g. all of
    *  `meals`) when changing one flag inside it, never a deep partial — see
    *  `NotificationsSettings.tsx` for why. */
@@ -46,10 +53,12 @@ export const useNotifications = create<NotificationsStore>()(
       fcmToken: null,
       lastPermission: null,
       preferences: DEFAULT_NOTIFICATION_PREFERENCES,
+      unreadCount: 0,
       enable: (token) => set({ enabled: true, fcmToken: token }),
-      disable: () => set({ enabled: false, fcmToken: null }),
+      disable: () => set({ enabled: false, fcmToken: null, unreadCount: 0 }),
       setPermission: (state) => set({ lastPermission: state }),
       setPreferences: (p) => set({ preferences: p }),
+      setUnreadCount: (n) => set({ unreadCount: n }),
       updatePreferences: (patch) => set((s) => ({ preferences: { ...s.preferences, ...patch } })),
     }),
     {
