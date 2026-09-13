@@ -115,6 +115,34 @@ function useDataSync() {
 }
 
 /**
+ * The bell icon's red-dot badge (Layout.tsx) — refetches the unread count on enable,
+ * every 60s thereafter, and whenever the tab regains focus (the moment a user most
+ * plausibly just tapped a system notification or otherwise noticed one). Same
+ * dynamic-import-behind-`enabled` shape as the two hooks above.
+ */
+function useNotificationBadge() {
+  const enabled = useNotifications((s) => s.enabled);
+  const deviceId = useNotifications((s) => s.deviceId);
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    const refresh = () => {
+      import('./lib/notifications/badge').then(({ refreshUnreadCount }) => {
+        if (!cancelled) void refreshUnreadCount(deviceId);
+      });
+    };
+    refresh();
+    const interval = setInterval(refresh, 60_000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [enabled, deviceId]);
+}
+
+/**
  * The other end of `src/sw.ts`'s `notificationclick` deep link (spec §17 → §20's
  * funnel): a click adds `?notif=<id>` to the target URL (`notificationClickUrl` in
  * `src/lib/notifications/payload.ts`). Once this app itself has loaded with that param
@@ -148,6 +176,7 @@ export default function App() {
   useCoreAnalytics();
   useForegroundNotifications();
   useDataSync();
+  useNotificationBadge();
   useNotificationOpenTracking();
   const location = useLocation();
   useScrollToTop(location.pathname);

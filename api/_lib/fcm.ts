@@ -45,6 +45,16 @@ export async function sendPush(fcmToken: string, payload: PushPayload): Promise<
   return messaging.send({
     token: fcmToken,
     data: { title: payload.title, body: payload.body, ...payload.data },
+    // Without an explicit Urgency, the Web Push protocol defaults to "normal" — on
+    // Android that's exactly the priority class Doze/App Standby is allowed to defer
+    // for minutes to hours (this is what let one land in the in-app history, read from
+    // Mongo, well before its push ever reached the tray). `high` is the one value that
+    // tells Chrome/the OS to wake and delivers immediately, matching what a real meal
+    // reminder needs. TTL bounds how long FCM keeps retrying if the device is briefly
+    // offline instead of delivering a stale notification hours later.
+    webpush: {
+      headers: { Urgency: 'high', TTL: String(12 * 60 * 60) },
+    },
   });
 }
 

@@ -8,6 +8,13 @@ import { notificationClickUrl } from '../lib/notifications/payload';
 import { dismissNotification, fetchNotificationHistory, isApiConfigured, markNotificationRead } from '../lib/notifications/api';
 import type { NotificationHistoryItem } from '../domain/types';
 
+/** Recomputes the bell icon's badge count (Layout.tsx) from a fresher item list than
+ *  the periodic poll in App.tsx has necessarily seen yet — this component's own fetch,
+ *  and every read/dismiss it performs, are all more current than that. */
+function syncUnreadBadge(items: NotificationHistoryItem[]) {
+  useNotifications.getState().setUnreadCount(items.filter((i) => !i.readAt).length);
+}
+
 /**
  * Spec §27's "notification center" (Phase 9) — a lightweight in-app history reading
  * back `notificationHistory`, already written by Phases 5/6's send paths. Lives in
@@ -32,7 +39,10 @@ export function NotificationHistory() {
     if (!isApiConfigured) return;
     let cancelled = false;
     fetchNotificationHistory(deviceId).then((rows) => {
-      if (!cancelled) setItems(rows);
+      if (!cancelled) {
+        setItems(rows);
+        syncUnreadBadge(rows);
+      }
     });
     return () => {
       cancelled = true;
@@ -47,12 +57,20 @@ export function NotificationHistory() {
   // in-app or not, so this gets open-tracking + analytics for free rather than
   // duplicating that call here.
   const markRead = (id: string) => {
-    setItems((cur) => cur && cur.map((i) => (i.id === id ? { ...i, readAt: i.readAt ?? new Date().toISOString() } : i)));
+    setItems((cur) => {
+      const next = cur && cur.map((i) => (i.id === id ? { ...i, readAt: i.readAt ?? new Date().toISOString() } : i));
+      if (next) syncUnreadBadge(next);
+      return next;
+    });
     void markNotificationRead(deviceId, id);
   };
 
   const dismiss = (id: string) => {
-    setItems((cur) => cur && cur.filter((i) => i.id !== id));
+    setItems((cur) => {
+      const next = cur && cur.filter((i) => i.id !== id);
+      if (next) syncUnreadBadge(next);
+      return next;
+    });
     void dismissNotification(deviceId, id);
   };
 
