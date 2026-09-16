@@ -10,16 +10,19 @@ import { Reveal } from './ui/motion';
 
 const SAMPLE_DISHES = RECIPES.slice(0, 3).map((r) => r.title);
 const SCREEN_COUNT = 3;
+const INTRO_VIDEO = 'onboarding-intro.mp4';
 
 /**
  * First-use onboarding (MASTER PROMPT — ZESTO FIRST-USE EXPERIENCE REDESIGN.md).
- * Bengali-first/English-second, 3 screens, shown once (gated by `usePrefs().hasOnboarded`
- * in App.tsx) or replayed on demand (About → "How Zesto works", `state/onboardingUI.ts`).
- * Deliberately the only bilingual surface in the app — everything it links to stays in
+ * A silent intro video plays first, then 3 bilingual (Bengali-first/English-second)
+ * screens. Shown once (gated by `usePrefs().hasOnboarded` in App.tsx) or replayed on
+ * demand (About → "How Zesto works", `state/onboardingUI.ts`). The bilingual screens are
+ * deliberately the only bilingual surface in the app — everything they link to stays in
  * the app's existing (English) language.
  */
 export function Onboarding({ onDone }: { onDone: () => void }) {
-  const [screen, setScreen] = useState(0);
+  // -1 = intro video, 0..SCREEN_COUNT-1 = the bilingual screens
+  const [screen, setScreen] = useState(-1);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,6 +42,10 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   function complete(action: string) {
     track('onboarding_completed', { action });
     onDone();
+  }
+
+  if (screen === -1) {
+    return <IntroVideo onEnded={() => setScreen(0)} onSkip={skip} />;
   }
 
   return (
@@ -93,6 +100,35 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Silent branded intro that plays once before the bilingual screens. Auto-advances
+ *  when the video ends (or fails to load/play — e.g. autoplay blocked); tapping the
+ *  video does the same, so nobody's stuck waiting on it. */
+function IntroVideo({ onEnded, onSkip }: { onEnded: () => void; onSkip: () => void }) {
+  return (
+    <div className="min-h-[100dvh] bg-black relative flex items-center justify-center">
+      <video
+        src={`${import.meta.env.BASE_URL}${INTRO_VIDEO}`}
+        autoPlay
+        muted
+        playsInline
+        onEnded={onEnded}
+        onError={onEnded}
+        onClick={onEnded}
+        className="max-h-[100dvh] w-full object-contain"
+      />
+      <div className="absolute top-0 inset-x-0 flex justify-end pt-safe pr-4">
+        <button
+          type="button"
+          onClick={onSkip}
+          className="text-sm font-semibold text-white/80 hover:text-white min-h-[44px] px-3"
+        >
+          Skip
+        </button>
+      </div>
     </div>
   );
 }
