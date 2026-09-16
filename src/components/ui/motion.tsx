@@ -41,6 +41,13 @@ export const popIn: Variants = {
   show: { opacity: 1, scale: 1, transition: spring },
 };
 
+/** Fade up out of a soft blur — more presence than `fadeUp`, for a hero moment
+ *  (e.g. onboarding) rather than routine list/card entrances. */
+export const blurFadeUp: Variants = {
+  hidden: { opacity: 0, y: 16, filter: 'blur(10px)' },
+  show: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+};
+
 const staggerParent: Variants = {
   hidden: {},
   show: { transition: { staggerChildren: 0.05, delayChildren: 0.02 } },
