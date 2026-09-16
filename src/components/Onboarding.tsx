@@ -109,7 +109,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
  *  video does the same, so nobody's stuck waiting on it. */
 function IntroVideo({ onEnded, onSkip }: { onEnded: () => void; onSkip: () => void }) {
   return (
-    <div className="min-h-[100dvh] bg-black relative flex items-center justify-center">
+    <div className="fixed inset-0 bg-black">
       <video
         src={`${import.meta.env.BASE_URL}${INTRO_VIDEO}`}
         autoPlay
@@ -118,7 +118,7 @@ function IntroVideo({ onEnded, onSkip }: { onEnded: () => void; onSkip: () => vo
         onEnded={onEnded}
         onError={onEnded}
         onClick={onEnded}
-        className="max-h-[100dvh] w-full object-contain"
+        className="absolute inset-0 w-full h-full object-cover"
       />
       <div className="absolute top-0 inset-x-0 flex justify-end pt-safe pr-4">
         <button
