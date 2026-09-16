@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RECIPES } from '../data/catalog';
 import { buildWhatsAppFeedbackUrl, isFeedbackConfigured } from '../lib/feedback/whatsapp';
@@ -104,22 +104,54 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Silent branded intro that plays once before the bilingual screens. Auto-advances
- *  when the video ends (or fails to load/play — e.g. autoplay blocked); tapping the
- *  video does the same, so nobody's stuck waiting on it. */
+/** Branded intro (with sound) that plays once before the bilingual screens. Auto-advances
+ *  when the video ends (or fails to load — e.g. the file 404s); tapping it does the same,
+ *  so nobody's stuck waiting. Tries to autoplay with audio; browsers that block that
+ *  (most, without a prior user gesture) fall back to muted autoplay plus a one-tap
+ *  "unmute" prompt, rather than leaving the screen stuck on a black frame. */
 function IntroVideo({ onEnded, onSkip }: { onEnded: () => void; onSkip: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [needsUnmute, setNeedsUnmute] = useState(false);
+
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.play().catch(() => {
+      v.muted = true;
+      setNeedsUnmute(true);
+      v.play().catch(onEnded);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-black">
       <video
+        ref={videoRef}
         src={`${import.meta.env.BASE_URL}${INTRO_VIDEO}`}
-        autoPlay
-        muted
         playsInline
         onEnded={onEnded}
         onError={onEnded}
         onClick={onEnded}
         className="absolute inset-0 w-full h-full object-cover"
       />
+      {needsUnmute && (
+        <button
+          type="button"
+          onClick={() => {
+            const v = videoRef.current;
+            if (v) {
+              v.muted = false;
+              setNeedsUnmute(false);
+            }
+          }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-sm font-semibold text-white
+                     bg-white/15 backdrop-blur-sm rounded-full px-4 py-2 min-h-[44px]"
+        >
+          🔊 Tap for sound
+        </button>
+      )}
       <div className="absolute top-0 inset-x-0 flex justify-end pt-safe pr-4">
         <button
           type="button"
