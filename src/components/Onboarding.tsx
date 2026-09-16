@@ -191,7 +191,7 @@ function BilingualLine({
 }) {
   return (
     <As className={className}>
-      <span className="block">{bn}</span>
+      <span className="block font-bengali">{bn}</span>
       <span className="block text-content-muted font-normal">{en}</span>
     </As>
   );
@@ -264,7 +264,7 @@ function KitchenScreen() {
             className="z-chip !py-2 flex-col !items-center gap-0.5 !rounded-2xl"
           >
             <span className="text-xl leading-none" aria-hidden>{c.emoji}</span>
-            <span className="text-2xs font-semibold">{c.bn}</span>
+            <span className="text-2xs font-semibold font-bengali">{c.bn}</span>
           </m.span>
         ))}
       </m.div>
@@ -324,7 +324,7 @@ function StartScreen({
 
       <m.div variants={blurFadeUp} className="space-y-3">
         <Button block size="lg" onClick={onPrimary} className="flex-col !gap-0.5 !py-3">
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 font-bengali">
             <Icon name="mode-make" size={18} /> আমি কী বানাতে পারি?
           </span>
           <span className="text-xs font-normal opacity-90">What can I make?</span>
@@ -333,7 +333,7 @@ function StartScreen({
         <button
           type="button"
           onClick={onBrowse}
-          className="text-sm font-semibold text-content-muted hover:text-content min-h-[44px]"
+          className="text-sm font-semibold text-content-muted hover:text-content min-h-[44px] font-bengali"
         >
           অথবা রেসিপি খুঁজুন · Or browse recipes
         </button>
@@ -349,10 +349,10 @@ function StartScreen({
           className="z-card p-3.5 flex items-center justify-between text-left"
         >
           <span>
-            <span className="block text-sm font-bold">আপনার প্রিয় রেসিপি নেই?</span>
+            <span className="block text-sm font-bold font-bengali">আপনার প্রিয় রেসিপি নেই?</span>
             <span className="block text-xs text-content-muted">Can't find your favourite recipe?</span>
           </span>
-          <span className="text-xs font-semibold text-brand shrink-0 ml-2">আপনিই যোগ করুন →</span>
+          <span className="text-xs font-semibold text-brand shrink-0 ml-2 font-bengali">আপনিই যোগ করুন →</span>
         </m.a>
       )}
     </div>

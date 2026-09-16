@@ -36,6 +36,7 @@ export default {
       },
       fontFamily: {
         sans: ['Quicksand', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+        bengali: ['Hind Siliguri', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       fontSize: {
         // 1.20 modular scale

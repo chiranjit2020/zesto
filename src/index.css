@@ -2,6 +2,14 @@
 @import '@fontsource/quicksand/500.css';
 @import '@fontsource/quicksand/600.css';
 @import '@fontsource/quicksand/700.css';
+/* Quicksand has no Bengali glyphs — used for the bn lines in Onboarding.tsx,
+   the app's one bilingual surface (MASTER PROMPT — ZESTO FIRST-USE EXPERIENCE
+   REDESIGN.md §4/§5), so that Bangla text renders in a real Bengali typeface
+   instead of whatever the OS happens to substitute. */
+@import '@fontsource/hind-siliguri/400.css';
+@import '@fontsource/hind-siliguri/500.css';
+@import '@fontsource/hind-siliguri/600.css';
+@import '@fontsource/hind-siliguri/700.css';
 @import './styles/tokens.css';
 
 @tailwind base;
