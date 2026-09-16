@@ -146,10 +146,10 @@ function IntroVideo({ onEnded, onSkip }: { onEnded: () => void; onSkip: () => vo
               setNeedsUnmute(false);
             }
           }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-sm font-semibold text-white
-                     bg-white/15 backdrop-blur-sm rounded-full px-4 py-2 min-h-[44px]"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1.5 text-sm
+                     font-semibold text-white bg-white/15 backdrop-blur-sm rounded-full px-4 py-2 min-h-[44px]"
         >
-          🔊 Tap for sound
+          <Icon name="sound" size={16} /> Tap for sound
         </button>
       )}
       <div className="absolute top-0 inset-x-0 flex justify-end pt-safe pr-4">
