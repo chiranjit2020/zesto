@@ -1,0 +1,254 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { RECIPES } from '../data/catalog';
+import { buildWhatsAppFeedbackUrl, isFeedbackConfigured } from '../lib/feedback/whatsapp';
+import { track } from '../lib/track';
+import { Button } from './ui/Button';
+import { Icon } from './ui/Icon';
+import { ZLockup } from './ui/ZMark';
+import { Reveal } from './ui/motion';
+
+const SAMPLE_DISHES = RECIPES.slice(0, 3).map((r) => r.title);
+const SCREEN_COUNT = 3;
+
+/**
+ * First-use onboarding (MASTER PROMPT — ZESTO FIRST-USE EXPERIENCE REDESIGN.md).
+ * Bengali-first/English-second, 3 screens, shown once (gated by `usePrefs().hasOnboarded`
+ * in App.tsx) or replayed on demand (About → "How Zesto works", `state/onboardingUI.ts`).
+ * Deliberately the only bilingual surface in the app — everything it links to stays in
+ * the app's existing (English) language.
+ */
+export function Onboarding({ onDone }: { onDone: () => void }) {
+  const [screen, setScreen] = useState(0);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    track('onboarding_started');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    track('onboarding_screen_viewed', { screen_number: screen + 1 });
+  }, [screen]);
+
+  function skip() {
+    track('onboarding_skipped', { screen_number: screen + 1 });
+    onDone();
+  }
+
+  function complete(action: string) {
+    track('onboarding_completed', { action });
+    onDone();
+  }
+
+  return (
+    <div className="min-h-[100dvh] flex flex-col bg-surface px-5 pt-safe pb-safe">
+      <div className="flex items-center justify-between pt-4 pb-2 shrink-0">
+        <div className="flex items-center gap-1.5" aria-hidden>
+          {Array.from({ length: SCREEN_COUNT }).map((_, i) => (
+            <span
+              key={i}
+              className={`h-1.5 rounded-full transition-all ${
+                i === screen ? 'w-6 bg-brand' : 'w-1.5 bg-line'
+              }`}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={skip}
+          className="text-sm font-semibold text-content-muted hover:text-content min-h-[44px] px-2 -mr-2"
+        >
+          Skip
+        </button>
+      </div>
+
+      <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full py-6">
+        {screen === 0 && <IntroScreen key="s1" />}
+        {screen === 1 && <KitchenScreen key="s2" />}
+        {screen === 2 && (
+          <StartScreen
+            key="s3"
+            onPrimary={() => {
+              track('onboarding_primary_cta_clicked');
+              complete('primary_cta');
+              navigate('/make');
+            }}
+            onBrowse={() => {
+              track('onboarding_recipe_search_clicked');
+              complete('browse_recipes');
+              navigate('/discover');
+            }}
+            onAddRecipe={() => {
+              track('onboarding_add_recipe_clicked');
+            }}
+          />
+        )}
+      </div>
+
+      {screen < SCREEN_COUNT - 1 && (
+        <div className="pb-6 max-w-md mx-auto w-full shrink-0">
+          <Button block size="lg" onClick={() => setScreen((s) => s + 1)}>
+            Next →
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BilingualLine({
+  bn,
+  en,
+  as: As = 'p',
+  className = '',
+}: {
+  bn: string;
+  en: string;
+  as?: 'h1' | 'p';
+  className?: string;
+}) {
+  return (
+    <As className={className}>
+      <span className="block">{bn}</span>
+      <span className="block text-content-muted font-normal">{en}</span>
+    </As>
+  );
+}
+
+function IntroScreen() {
+  return (
+    <Reveal className="text-center space-y-6">
+      <div className="flex justify-center">
+        <ZLockup size={48} />
+      </div>
+      <BilingualLine
+        as="h1"
+        bn="খিদে পেয়েছে? আজ কী রান্না করবেন?"
+        en="Hungry? What will you cook today?"
+        className="text-2xl font-bold text-balance leading-snug"
+      />
+      <BilingualLine
+        bn="Zesto খাবার ডেলিভারি করে না। আপনার কী আছে, কত বাজেট আর কত সময় আছে — সেটা দেখে কী রান্না করা যায় তা খুঁজে দেয়।"
+        en="Zesto doesn't deliver food. It helps you decide what to cook based on what you have, your budget and your time."
+        className="text-sm leading-relaxed"
+      />
+      <div className="z-card p-3.5 !bg-surface-sunken">
+        <BilingualLine
+          bn="Food delivery নয়। Cooking decision-এর সহকারী।"
+          en="Not food delivery. Your cooking decision assistant."
+          className="text-xs font-semibold"
+        />
+      </div>
+    </Reveal>
+  );
+}
+
+const INGREDIENT_CHIPS = [
+  { emoji: '🥔', bn: 'আলু', en: 'Potato' },
+  { emoji: '🥚', bn: 'ডিম', en: 'Egg' },
+  { emoji: '🧅', bn: 'পেঁয়াজ', en: 'Onion' },
+  { emoji: '🍞', bn: 'পাউরুটি', en: 'Bread' },
+];
+
+function KitchenScreen() {
+  return (
+    <Reveal className="text-center space-y-6">
+      <BilingualLine
+        as="h1"
+        bn="আপনার কাছে কী আছে?"
+        en="What do you have?"
+        className="text-2xl font-bold text-balance"
+      />
+
+      <div className="flex justify-center gap-2 flex-wrap">
+        {INGREDIENT_CHIPS.map((c) => (
+          <span key={c.en} className="z-chip !py-2 flex-col !items-center gap-0.5 !rounded-2xl">
+            <span className="text-xl leading-none" aria-hidden>{c.emoji}</span>
+            <span className="text-2xs font-semibold">{c.bn}</span>
+          </span>
+        ))}
+      </div>
+
+      <BilingualLine
+        bn="আপনার রান্নাঘরের কথা বলুন।"
+        en="Tell Zesto what you have."
+        className="text-sm font-semibold"
+      />
+
+      <div className="z-card p-4 space-y-2 text-sm font-bold">
+        <div className="text-content-muted text-xs">Ingredients + time + budget</div>
+        <div className="text-brand">↓</div>
+        <div className="z-gradient-text">Zesto</div>
+        <div className="text-brand">↓</div>
+        <div className="space-y-1">
+          {SAMPLE_DISHES.map((title) => (
+            <div key={title} className="text-content font-semibold">{title}</div>
+          ))}
+        </div>
+      </div>
+
+      <BilingualLine
+        bn="যা আছে, তাই দিয়ে কী বানানো যায় — Zesto খুঁজে দেবে।"
+        en="Tell Zesto what you have. It finds what you can make."
+        className="text-sm leading-relaxed"
+      />
+    </Reveal>
+  );
+}
+
+function StartScreen({
+  onPrimary,
+  onBrowse,
+  onAddRecipe,
+}: {
+  onPrimary: () => void;
+  onBrowse: () => void;
+  onAddRecipe: () => void;
+}) {
+  const addRecipeUrl = buildWhatsAppFeedbackUrl('recipe', 'onboarding');
+
+  return (
+    <Reveal className="text-center space-y-6">
+      <BilingualLine
+        as="h1"
+        bn="চলুন, শুরু করি।"
+        en="Let's get started."
+        className="text-2xl font-bold text-balance"
+      />
+
+      <div className="space-y-3">
+        <Button block size="lg" onClick={onPrimary} className="flex-col !gap-0.5 !py-3">
+          <span className="flex items-center gap-2">
+            <Icon name="mode-make" size={18} /> আমি কী বানাতে পারি?
+          </span>
+          <span className="text-xs font-normal opacity-90">What can I make?</span>
+        </Button>
+
+        <button
+          type="button"
+          onClick={onBrowse}
+          className="text-sm font-semibold text-content-muted hover:text-content min-h-[44px]"
+        >
+          অথবা রেসিপি খুঁজুন · Or browse recipes
+        </button>
+      </div>
+
+      {isFeedbackConfigured && addRecipeUrl && (
+        <a
+          href={addRecipeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={onAddRecipe}
+          className="z-card p-3.5 flex items-center justify-between text-left"
+        >
+          <span>
+            <span className="block text-sm font-bold">আপনার প্রিয় রেসিপি নেই?</span>
+            <span className="block text-xs text-content-muted">Can't find your favourite recipe?</span>
+          </span>
+          <span className="text-xs font-semibold text-brand shrink-0 ml-2">আপনিই যোগ করুন →</span>
+        </a>
+      )}
+    </Reveal>
+  );
+}

@@ -91,6 +91,7 @@
 @layer utilities {
   .text-balance { text-wrap: balance; }
   .pb-safe { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
+  .pt-safe { padding-top: env(safe-area-inset-top); }
   .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .grad-brand { background-image: var(--z-grad-brand); }

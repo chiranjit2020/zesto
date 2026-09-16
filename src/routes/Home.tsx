@@ -13,8 +13,9 @@ import { Icon, MODE_MOTION, type IconName } from '../components/ui/Icon';
 import { m, MotionLink, spring } from '../components/ui/motion';
 import { useMemo } from 'react';
 
+/** Tertiary — de-emphasized alternative scenarios below the primary "What can I make?"
+ *  hero and the secondary quick filters (spec §12: primary/secondary/tertiary hierarchy). */
 const MODES: { to: string; icon: IconName; title: string; sub: string }[] = [
-  { to: '/make', icon: 'mode-make', title: 'What can I make?', sub: 'From what you have' },
   { to: '/broke', icon: 'mode-broke', title: "I'm broke", sub: 'Tiny budget' },
   { to: '/tired', icon: 'mode-tired', title: "I'm too tired", sub: 'Low effort, low cleanup' },
   { to: '/midnight', icon: 'mode-midnight', title: 'Midnight hunger', sub: 'Quiet & quick' },
@@ -25,7 +26,6 @@ const MODES: { to: string; icon: IconName; title: string; sub: string }[] = [
 ];
 
 const MODE_ACCENT: Record<string, string> = {
-  '/make': 'text-brand',
   '/broke': 'text-caution',
   '/tired': 'text-critical',
   '/midnight': 'text-brand',
@@ -79,31 +79,73 @@ export function Home() {
         </Link>
       )}
 
+      {/* ---- PRIMARY: the one dominant question (spec §12) ---- */}
       <section>
         <p className="text-sm font-semibold text-content-muted">{greeting}</p>
         <h1 className="text-display font-bold mt-1 text-balance">What can you make right now?</h1>
 
         <m.div
-          className="mt-5 grid grid-cols-2 gap-2.5"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-5 z-card grad-brand text-white p-5"
+        >
+          <Icon name="mode-make" size={30} strokeWidth={2.2} motion="pop" />
+          <p className="font-bold text-lg mt-2">What can I make?</p>
+          <p className="text-xs opacity-90 mb-4">From what you have, your budget and your time.</p>
+          <MotionLink
+            to="/make"
+            whileTap={{ scale: 0.97 }}
+            className="block text-center bg-white text-brand-purple font-bold rounded-full py-2.5 text-sm"
+          >
+            What can I make?
+          </MotionLink>
+          <Link to="/pantry" className="block text-center text-xs font-semibold opacity-90 mt-3">
+            What's in your kitchen? →
+          </Link>
+        </m.div>
+      </section>
+
+      {/* ---- SECONDARY: quick constraints (spec §12) ---- */}
+      <section>
+        <SectionHeader title="Quick filters" />
+        <div className="flex flex-wrap gap-1.5">
+          {QUICK.map((q) => (
+            <button
+              key={q.label}
+              onClick={() => navigate(q.to)}
+              className="z-chip z-tap !py-2"
+            >
+              {q.label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* ---- TERTIARY: advanced scenarios, de-emphasized (spec §12) ---- */}
+      <section>
+        <SectionHeader title="More ways to decide" />
+        <m.div
+          className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4"
           initial="hidden"
           animate="show"
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.045 } } }}
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
         >
           {MODES.map((mode) => (
             <MotionLink
               key={mode.to}
               to={mode.to}
               variants={{
-                hidden: { opacity: 0, y: 14, scale: 0.96 },
-                show: { opacity: 1, y: 0, scale: 1, transition: spring },
+                hidden: { opacity: 0, y: 10 },
+                show: { opacity: 1, y: 0, transition: spring },
               }}
               whileTap={{ scale: 0.95 }}
-              className="group z-card p-3.5 flex flex-col gap-1 min-h-[96px]"
+              className="group z-card p-3 flex flex-col gap-1 w-28 shrink-0"
             >
-              <span className={`mb-0.5 ${MODE_ACCENT[mode.to] ?? 'text-brand'}`}>
-                <Icon name={mode.icon} size={26} strokeWidth={2.2} motion={MODE_MOTION[mode.icon]} />
+              <span className={MODE_ACCENT[mode.to] ?? 'text-brand'}>
+                <Icon name={mode.icon} size={20} strokeWidth={2.2} motion={MODE_MOTION[mode.icon]} />
               </span>
-              <span className="font-bold leading-tight text-sm">{mode.title}</span>
+              <span className="font-bold leading-tight text-xs">{mode.title}</span>
               <span className="text-2xs text-content-faint">{mode.sub}</span>
             </MotionLink>
           ))}
@@ -122,21 +164,6 @@ export function Home() {
           <span className="text-xl">→</span>
         </Link>
       )}
-
-      <section>
-        <SectionHeader title="Quick filters" />
-        <div className="flex flex-wrap gap-1.5">
-          {QUICK.map((q) => (
-            <button
-              key={q.label}
-              onClick={() => navigate(q.to)}
-              className="z-chip z-tap !py-2"
-            >
-              {q.label}
-            </button>
-          ))}
-        </div>
-      </section>
 
       {personalised.length > 0 ? (
         <section>

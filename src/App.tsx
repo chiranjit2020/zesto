@@ -5,7 +5,10 @@ import { useApplyTheme } from './app/theme';
 import { ZMark } from './components/ui/ZMark';
 import { MotionProvider, AnimatePresence, m, pageVariants } from './components/ui/motion';
 import { Home } from './routes/Home';
+import { Onboarding } from './components/Onboarding';
 import { useNotifications } from './state/notifications';
+import { usePrefs } from './state/prefs';
+import { useOnboardingUI } from './state/onboardingUI';
 import { track } from './lib/track';
 
 const WhatCanIMake = lazy(() => import('./routes/WhatCanIMake').then((m) => ({ default: m.WhatCanIMake })));
@@ -181,6 +184,24 @@ export default function App() {
   const location = useLocation();
   useScrollToTop(location.pathname);
   const fullscreen = FULLSCREEN.test(location.pathname);
+
+  const hasOnboarded = usePrefs((s) => s.hasOnboarded);
+  const setPrefs = usePrefs((s) => s.set);
+  const replaying = useOnboardingUI((s) => s.replaying);
+  const endReplay = useOnboardingUI((s) => s.endReplay);
+
+  if (!hasOnboarded || replaying) {
+    return (
+      <MotionProvider>
+        <Onboarding
+          onDone={() => {
+            setPrefs({ hasOnboarded: true });
+            endReplay();
+          }}
+        />
+      </MotionProvider>
+    );
+  }
 
   const routes = (
     <Routes location={location}>

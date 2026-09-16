@@ -10,12 +10,13 @@
  * the build's git-SHA version. Never pantry contents, meal history, or any device/user
  * identifier.
  */
-export type FeedbackType = 'bug' | 'idea' | 'general';
+export type FeedbackType = 'bug' | 'idea' | 'general' | 'recipe';
 
 const TYPE_LABELS: Record<FeedbackType, string> = {
   bug: 'Bug report',
   idea: 'Feature idea',
   general: 'General feedback',
+  recipe: 'Recipe to add',
 };
 
 /** Coarse OS + browser guess from the user agent — enough to be useful for a bug
@@ -52,13 +53,15 @@ export function buildWhatsAppFeedbackUrl(type: FeedbackType, page: string): stri
   const number = import.meta.env.VITE_WHATSAPP_NUMBER;
   if (!number) return null;
 
+  const bodyPrompt = type === 'recipe' ? 'Recipe name, ingredients & steps:' : 'Problem:';
+
   const message = [
     'Hi Zesto 👋',
     '',
     `Feedback type: ${TYPE_LABELS[type]}`,
     `Page: ${page}`,
     '',
-    'Problem:',
+    bodyPrompt,
     '',
     '',
     `Device/Browser: ${deviceSummary()}`,

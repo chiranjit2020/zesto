@@ -1,9 +1,10 @@
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
-import { ButtonLink } from '../components/ui/Button';
+import { Button, ButtonLink } from '../components/ui/Button';
 import { Icon } from '../components/ui/Icon';
 import { ZLockup } from '../components/ui/ZMark';
 import { CATALOG_META } from '../data/catalog';
+import { useOnboardingUI } from '../state/onboardingUI';
 
 export function NotFound() {
   return (
@@ -17,6 +18,8 @@ export function NotFound() {
 }
 
 export function About() {
+  const startReplay = useOnboardingUI((s) => s.startReplay);
+
   return (
     <div className="space-y-4">
       <PageHeader title="About Zesto" />
@@ -42,6 +45,9 @@ export function About() {
         Every recipe here was gathered, tested and written down by one person — Samiran Roy.
         Zesto is just the engine built around his 99 recipes; he did the real cooking.
       </p>
+      <div className="flex justify-center">
+        <Button variant="secondary" size="sm" onClick={startReplay}>How Zesto works</Button>
+      </div>
       <Link to="/" className="block text-center text-xs font-semibold text-brand pt-2">← Home</Link>
       <p className="text-center text-[11px] text-content-faint pt-2">
         © 2026 Chiranjit Karmakar. All rights reserved.
